@@ -1,33 +1,38 @@
-require 'socket'
+require 'fastdfs-client/socket'
+require 'fastdfs-client/storage'
+require 'fastdfs-client/cmd'
+require 'fastdfs-client/proto_common'
 
 module Fastdfs
   module Client
 
     class Tracker
-      attr_accessor :socket, :host, :port
+      attr_accessor :socket, :host, :port, :cmd
 
       def initialize(host, port)
         @host = host
         @port = port
-        @socket = TCPSocket.new(host, port)
+        @socket = Socket.new(host, port)
+        @cmd = CMD::STORE_WITHOUT_GROUP_ONE
       end
 
       def get_storage
-        items = 8.times.map{|i| 0 } << 101 << 0
-        @socket.write(items.pack("c*"))
-        #103,114,111,117,112,49,0,0,0,0,0,0,0,0,0,0,49,57,50,46,49,54,56,46,56,46,50,51,0,0,0,0,0,0,0,0,0,89,216,0
-        PackException.new(@socket.recv(10))
-        packs = @socket.recv(ProtoCommon::BODY_LEN)
-        ip_addr = packs[ProtoCommon::IPADDR].gsub(/\x00/, '')
-        @pack_header = PackHeader.new(packs[ProtoCommon::PORT].unpack("C*"))
-        store_path = packs[ProtoCommon::BODY_LEN-1].unpack("C*")[0]
-        storage = StorageClient.new(ip_addr, @pack_header.resolve)
+        header = ([].fill(0, 0..7) << @cmd << 0).pack("C*")
+        @socket.write(@cmd, header)
+        @socket.receive #ProtoCommon::BODY_LEN
+
+        storage_ip = @socket.content[ProtoCommon::IPADDR].gsub(/\x00/, '')
+        storage_port = @socket.content[ProtoCommon::PORT].unpack("C*").to_pack_long
+        store_path = @socket.content[ProtoCommon::BODY_LEN-1].unpack("C*")[0]
+
+        puts "ip_addr: #{storage_ip}, port: #{storage_port}"
+        storage = Storage.new(storage_ip, storage_port)
         storage.store_path = store_path
         return storage
       ensure
         @socket.close
       end
     end
-    
+
   end
 end

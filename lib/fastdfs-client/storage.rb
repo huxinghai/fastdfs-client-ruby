@@ -1,4 +1,5 @@
-require 'socket'
+require 'fastdfs-client/socket'
+require 'fastdfs-client/cmd'
 require 'tempfile'
 
 module Fastdfs
@@ -10,7 +11,7 @@ module Fastdfs
       def initialize(host, port)
         @host = host
         @port = port
-        @socket = TCPSocket.new(host, port)
+        @socket = Socket.new(host, port)
         @extname_len = 6
       end
 
@@ -24,6 +25,7 @@ module Fastdfs
       # header = cmd + body_len  ... 11 ...29
       # write file bytes
       def upload(file)  
+        cmd = CMD::UPLOAD_FILE
         case file
 
         when Tempfile
@@ -36,17 +38,17 @@ module Fastdfs
           body_len = size_byte.length + @extname_len + file.size
           hex_bytes = log2buff(body_len)
           header = hex_bytes.fill(0, hex_bytes.length..9)
-          header[8] = 11 #cmd
+          header[8] = cmd #cmd
           header[9] = 0   #erroron
           # debugger
           pkg = header + size_byte + ext_name_bs
-          @socket.write(pkg.pack("c*"))
-          @socket.write(file.read.unpack("c*").pack("c*"))
-          header = @socket.recv(10)
-          recv_len = PackHeader.new(header.bytes).resolve
-          body = @socket.recv(recv_len)
-          puts body[0..15]
-          puts body[16..-1]
+          
+          @socket.write(cmd, pkg.pack("C*"))
+          @socket.write(cmd, file.read.unpack("c*").pack("c*"))
+          @socket.receive
+          
+          puts @socket.content[0..15]
+          puts @socket.content[16..-1]
         when String
 
         else
@@ -60,6 +62,6 @@ module Fastdfs
         8.times.map{|i| (num >> (56 - 8 * i)) & 255}
       end
     end
-    
+
   end
 end

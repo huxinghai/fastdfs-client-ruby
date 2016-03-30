@@ -1,2 +1,2 @@
-require "fastdfs-client/storage_client"
-require "fastdfs-client/tracker_client"
+require "fastdfs-client/extend_core"
+require "fastdfs-client/tracker"
