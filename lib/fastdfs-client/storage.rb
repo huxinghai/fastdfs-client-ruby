@@ -1,18 +1,24 @@
 require 'fastdfs-client/socket'
 require 'fastdfs-client/cmd'
+require 'fastdfs-client/proto_common'
+require 'fastdfs-client/utils'
 require 'tempfile'
 
 module Fastdfs
   module Client
 
     class Storage
+      include Utils
+
       attr_accessor :host, :port, :group_name, :store_path
 
       def initialize(host, port)
         @host = host
         @port = port
         @socket = Socket.new(host, port)
-        @extname_len = 6
+        @extname_len = ProtoCommon::EXTNAME_LEN
+        @header_len = ProtoCommon::HEAD_LEN
+        @size_len = ProtoCommon::SIZE_LEN
       end
 
       # File.open("/Users/huxinghai/Downloads/1279304.jpeg")
@@ -25,30 +31,12 @@ module Fastdfs
       # header = cmd + body_len  ... 11 ...29
       # write file bytes
       def upload(file)  
-        cmd = CMD::UPLOAD_FILE
         case file
 
         when Tempfile
-
+          _upload(file)
         when File
-          extname = File.extname(file)[1..-1]
-          ext_name_bs = extname.bytes.fill(0, extname.length..(@extname_len-1))
-          hex_len_bytes = log2buff(file.size)
-          size_byte = [store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)..8)
-          body_len = size_byte.length + @extname_len + file.size
-          hex_bytes = log2buff(body_len)
-          header = hex_bytes.fill(0, hex_bytes.length..9)
-          header[8] = cmd #cmd
-          header[9] = 0   #erroron
-          # debugger
-          pkg = header + size_byte + ext_name_bs
-          
-          @socket.write(cmd, pkg.pack("C*"))
-          @socket.write(cmd, file.read.unpack("c*").pack("c*"))
-          @socket.receive
-          
-          puts @socket.content[0..15]
-          puts @socket.content[16..-1]
+          _upload(file)
         when String
 
         else
@@ -59,11 +47,29 @@ module Fastdfs
       end
 
       private 
-      
-      
-      def log2buff(num)
-        8.times.map{|i| (num >> (56 - 8 * i)) & 255}
+      def _upload(file)
+        cmd = CMD::UPLOAD_FILE
+
+        extname = File.extname(file)[1..-1]
+        ext_name_bs = extname.to_s.bytes.fill(0, extname.length...@extname_len)
+        hex_len_bytes = long_convert_bytes(file.size)
+        size_byte = [store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
+        hex_bytes = long_convert_bytes(size_byte.length + @extname_len + file.size)
+        header = hex_bytes.fill(0, hex_bytes.length...@header_len)
+
+        header[8] = cmd #cmd
+        header[9] = 0   #erroron
+
+        pkg = header + size_byte + ext_name_bs
+        
+        @socket.write(cmd, pkg.pack("C*"))
+        @socket.write(cmd, IO.read(file))
+        @socket.receive
+        
+        {group_name: pack_trim(@socket.content[0..15]), path: @socket.content[16..-1]}
       end
+
+      
     end
 
   end

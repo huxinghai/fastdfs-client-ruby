@@ -2,11 +2,14 @@ require 'fastdfs-client/socket'
 require 'fastdfs-client/storage'
 require 'fastdfs-client/cmd'
 require 'fastdfs-client/proto_common'
+require 'fastdfs-client/utils'
 
 module Fastdfs
   module Client
 
     class Tracker
+      include Utils
+
       attr_accessor :socket, :host, :port, :cmd
 
       def initialize(host, port)
@@ -21,7 +24,7 @@ module Fastdfs
         @socket.write(@cmd, header)
         @socket.receive
 
-        storage_ip = @socket.content[ProtoCommon::IPADDR].gsub(/\x00/, '')
+        storage_ip = pack_trim(@socket.content[ProtoCommon::IPADDR])
         storage_port = @socket.content[ProtoCommon::PORT].unpack("C*").to_pack_long
         store_path = @socket.content[ProtoCommon::BODY_LEN-1].unpack("C*")[0]
 
