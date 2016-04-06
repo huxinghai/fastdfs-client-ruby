@@ -17,7 +17,9 @@ module Fastdfs
 
       def write(*args)
         @cmd = args.shift
-        @socket.write *args
+        pkg = args.shift
+        pkg = pkg.pack("C*") if pkg.is_a?(Array)
+        @socket.write pkg
       end
 
       def close 
@@ -32,11 +34,15 @@ module Fastdfs
         !@socket.closed?
       end
 
-      def receive(is_body = true)
+      def receive
         @content = nil
+        recv_header
+        @content = @socket.recv(@header.to_pack_long)
+      end
+
+      def recv_header
         @header = @socket.recv(@header_len).unpack("C*")
         valid_header_exception!
-        @content = @socket.recv(@header.to_pack_long) if is_body
       end
 
       private

@@ -58,8 +58,8 @@ module Fastdfs
 
         path_length = (group_bytes.length + path.bytes.length)
 
-        @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes).pack("C*"))
-        @socket.receive(false)
+        @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes))
+        @socket.recv_header
       ensure
         @socket.close
       end
@@ -81,7 +81,7 @@ module Fastdfs
 
         pkg = header + size_byte + ext_name_bs
         
-        @socket.write(cmd, pkg.pack("C*"))
+        @socket.write(cmd, pkg)
         @socket.write(cmd, IO.read(file))
         @socket.receive
         

@@ -20,8 +20,7 @@ module Fastdfs
       end
 
       def get_storage
-        header = ([].fill(0, 0..7) << @cmd << 0).pack("C*")
-        @socket.write(@cmd, header)
+        @socket.write(@cmd, ([].fill(0, 0..7) << @cmd << 0))
         @socket.receive
 
         storage_ip = pack_trim(@socket.content[ProtoCommon::IPADDR])
