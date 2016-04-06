@@ -5,23 +5,38 @@ require 'fastdfs-client/cmd'
 module Fastdfs
   module Client
 
-    class Socket < TCPSocket
-      attr_accessor :header, :content, :header_len, :cmd
+    class Socket
+      attr_accessor :header, :content, :header_len, :cmd, :socket, :host, :port
 
-      def initialize(*args)
-        super
+      def initialize(host, port)
+        @host = host
+        @port = port
+        reconnect
         @header_len = 10
       end
 
       def write(*args)
         @cmd = args.shift
-        super *args
+        @socket.write *args
       end
 
-      def receive
-        @header = recv(@header_len).unpack("C*")
+      def close 
+        @socket.close if connected
+      end
+
+      def reconnect
+        @socket = TCPSocket.new(@host, @port) if @socket.nil? || !connected
+      end
+
+      def connected
+        !@socket.closed?
+      end
+
+      def receive(is_body = true)
+        @content = nil
+        @header = @socket.recv(@header_len).unpack("C*")
         valid_header_exception!
-        @content = recv(@header.to_pack_long)
+        @content = @socket.recv(@header.to_pack_long) if is_body
       end
 
       private

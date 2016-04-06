@@ -46,16 +46,29 @@ module Fastdfs
       end
 
       def delete(path, group_name = nil)
+        @socket.reconnect
         cmd = CMD::DELETE_FILE
         raise "path arguments is empty!" if path.blank?
-        group_name = /^\/?(\w+)/.match(path)[1] if group_name.blank?
+        if group_name.blank?
+          group_name = /^\/?(\w+)/.match(path)[1]
+          path = path.gsub("/#{group_name}")
+        end
         raise "group_name arguments is empty!" if group_name.blank?
-        group_bytes = group_name.bytes.fill(0, (group_name.length+1)...16)
+        group_bytes = group_name.bytes.fill(0, group_name.length...16)
+
+        path_length = (group_bytes.length + path.bytes.length)
+
+        @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes).pack("C*"))
+        @socket.receive(false)
+        puts @socket.content
+      ensure
+        @socket.close
       end
 
       private 
       def _upload(file)
         cmd = CMD::UPLOAD_FILE
+        @socket.reconnect
 
         extname = File.extname(file)[1..-1]
         ext_name_bs = extname.to_s.bytes.fill(0, extname.length...@extname_len)
@@ -76,6 +89,13 @@ module Fastdfs
         {group_name: pack_trim(@socket.content[0..15]), path: @socket.content[16..-1]}
       end
 
+      def header_bytes(cmd, hex_long, erron = 0)
+        hex_bytes = long_convert_bytes(hex_long)
+        header = hex_bytes.fill(0, hex_bytes.length...@header_len)
+        header[8] = cmd
+        header[9] = erron
+        header
+      end
       
     end
 
