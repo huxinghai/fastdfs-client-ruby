@@ -38,12 +38,19 @@ module Fastdfs
         when File
           _upload(file)
         when String
-
         else
           raise "data type exception #{file}"
         end
       ensure
         @socket.close
+      end
+
+      def delete(path, group_name = nil)
+        cmd = CMD::DELETE_FILE
+        raise "path arguments is empty!" if path.blank?
+        group_name = /^\/?(\w+)/.match(path)[1] if group_name.blank?
+        raise "group_name arguments is empty!" if group_name.blank?
+        group_bytes = group_name.bytes.fill(0, (group_name.length+1)...16)
       end
 
       private 

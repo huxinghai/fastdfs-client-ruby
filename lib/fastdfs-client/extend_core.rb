@@ -5,3 +5,10 @@ class Array
     self.each_with_index.inject(0){|s, item| s = s | (item[0] << (56 - (item[1] * 8))); s }
   end
 end
+
+class Object
+
+  def blank?
+    self.empty? || self.nil?
+  end
+end
