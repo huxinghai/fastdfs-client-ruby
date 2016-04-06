@@ -60,7 +60,6 @@ module Fastdfs
 
         @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes).pack("C*"))
         @socket.receive(false)
-        puts @socket.content
       ensure
         @socket.close
       end
