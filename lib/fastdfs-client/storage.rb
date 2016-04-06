@@ -2,6 +2,7 @@ require 'fastdfs-client/socket'
 require 'fastdfs-client/cmd'
 require 'fastdfs-client/proto_common'
 require 'fastdfs-client/utils'
+require 'fastdfs-client/hook'
 require 'tempfile'
 
 module Fastdfs
@@ -9,6 +10,15 @@ module Fastdfs
 
     class Storage
       include Utils
+      extend Hook
+
+      before(:upload) do 
+        puts "before....." 
+      end
+      after(:upload) do 
+        puts "after...."
+      end
+      # before(:delete) {  @socket.reconnect }
 
       attr_accessor :host, :port, :group_name, :store_path
 
@@ -46,7 +56,6 @@ module Fastdfs
       end
 
       def delete(path, group_name = nil)
-        @socket.reconnect
         cmd = CMD::DELETE_FILE
         raise "path arguments is empty!" if path.blank?
         if group_name.blank?
@@ -55,7 +64,6 @@ module Fastdfs
         end
         raise "group_name arguments is empty!" if group_name.blank?
         group_bytes = group_name.bytes.fill(0, group_name.length...16)
-
         path_length = (group_bytes.length + path.bytes.length)
 
         @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes))
@@ -67,7 +75,6 @@ module Fastdfs
       private 
       def _upload(file)
         cmd = CMD::UPLOAD_FILE
-        @socket.reconnect
 
         extname = File.extname(file)[1..-1]
         ext_name_bs = extname.to_s.bytes.fill(0, extname.length...@extname_len)
