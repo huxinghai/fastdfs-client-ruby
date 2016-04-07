@@ -1,20 +1,18 @@
-require 'fastdfs-client/socket'
 require 'fastdfs-client/storage'
-require 'fastdfs-client/cmd'
-require 'fastdfs-client/proto_common'
-require 'fastdfs-client/utils'
 
 module Fastdfs
   module Client
 
     class Tracker
       include Utils
+      extend Hook
 
-      attr_accessor :socket, :host, :port, :cmd
+      before(:upload, :delete){ @socket.connection }
+      after(:upload, :delete){ @socket.close }
+
+      attr_accessor :socket, :cmd
 
       def initialize(host, port)
-        @host = host
-        @port = port
         @socket = Socket.new(host, port)
         @cmd = CMD::STORE_WITHOUT_GROUP_ONE
       end
@@ -30,8 +28,6 @@ module Fastdfs
         storage = Storage.new(storage_ip, storage_port)
         storage.store_path = store_path
         return storage
-      ensure
-        @socket.close
       end
     end
 

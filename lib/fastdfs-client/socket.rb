@@ -11,7 +11,7 @@ module Fastdfs
       def initialize(host, port)
         @host = host
         @port = port
-        reconnect
+        connection
         @header_len = 10
       end
 
@@ -26,7 +26,7 @@ module Fastdfs
         @socket.close if connected
       end
 
-      def reconnect
+      def connection
         @socket = TCPSocket.new(@host, @port) if @socket.nil? || !connected
       end
 

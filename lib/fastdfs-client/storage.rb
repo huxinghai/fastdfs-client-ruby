@@ -1,8 +1,3 @@
-require 'fastdfs-client/socket'
-require 'fastdfs-client/cmd'
-require 'fastdfs-client/proto_common'
-require 'fastdfs-client/utils'
-require 'fastdfs-client/hook'
 require 'tempfile'
 
 module Fastdfs
@@ -12,13 +7,8 @@ module Fastdfs
       include Utils
       extend Hook
 
-      before(:upload) do 
-        puts "before....." 
-      end
-      after(:upload) do 
-        puts "after...."
-      end
-      # before(:delete) {  @socket.reconnect }
+      before(:upload, :delete){ @socket.connection }
+      after(:upload, :delete){ @socket.close }
 
       attr_accessor :host, :port, :group_name, :store_path
 
@@ -51,8 +41,6 @@ module Fastdfs
         else
           raise "data type exception #{file}"
         end
-      ensure
-        @socket.close
       end
 
       def delete(path, group_name = nil)
@@ -68,8 +56,6 @@ module Fastdfs
 
         @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes))
         @socket.recv_header
-      ensure
-        @socket.close
       end
 
       private 
