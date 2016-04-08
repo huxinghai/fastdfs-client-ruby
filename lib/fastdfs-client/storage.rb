@@ -53,7 +53,7 @@ module Fastdfs
 
         extname = File.extname(file)[1..-1]
         ext_name_bs = extname.to_s.bytes.fill(0, extname.length...@extname_len)
-        hex_len_bytes = Utils.long_convert_bytes(file.size)
+        hex_len_bytes = Utils.number2Buffer(file.size)
         size_byte = [store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
 
         header = ProtoCommon.header_bytes(cmd, (size_byte.length + @extname_len + file.size))
