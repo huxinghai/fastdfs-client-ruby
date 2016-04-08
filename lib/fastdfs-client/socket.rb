@@ -1,4 +1,5 @@
 require 'socket'
+require 'timeout'
 require 'fastdfs-client/cmd'
 
 
@@ -13,6 +14,8 @@ module Fastdfs
         @port = port
         connection
         @header_len = 10
+        @connection_timeout = 3
+        @recv_timeout = 3
       end
 
       def write(*args)
@@ -27,7 +30,11 @@ module Fastdfs
       end
 
       def connection
-        @socket = TCPSocket.new(@host, @port) if @socket.nil? || !connected
+        if @socket.nil? || !connected
+          Timeout.timeout(@connection_timeout) do
+            @socket = TCPSocket.new(@host, @port)  
+          end
+        end
       end
 
       def connected
@@ -36,14 +43,16 @@ module Fastdfs
 
       def receive
         @content = nil
-        header = recv_header
-        @content = @socket.recv(@header.to_pack_long) if header[:body_length] > 0
+        Timeout.timeout(@recv_timeout) do 
+          @header = @socket.recv(@header_len).unpack("C*")
+        end
+        res_header = parseHeader
+        if res_header[:body_length] > 0
+          Timeout.timeout(@recv_timeout) do 
+            @content = @socket.recv(@header.to_pack_long) 
+          end
+        end
         yield @content if block_given?
-      end
-
-      def recv_header
-        @header = @socket.recv(@header_len).unpack("C*")
-        parseHeader
       end
 
       private
