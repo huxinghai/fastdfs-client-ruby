@@ -42,14 +42,16 @@ module Fastdfs
 
       def recv_header
         @header = @socket.recv(@header_len).unpack("C*")
-        valid_header_exception!
+        puts "header: #{@header}, #{@cmd}"
+        parseHeader
       end
 
       private
-      def valid_header_exception!
+      def parseHeader
         raise "recv package size #{@header} != #{@header_len}" unless @header.length == @header_len
         raise "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}" unless @header[8] == CMD::RESP_CODE
         raise "recv erron #{@header[9]}, 0 is correct" unless @header[9] == 0
+        {status: true, body_length: 0}
       end
 
     end
