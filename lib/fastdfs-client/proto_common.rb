@@ -9,6 +9,7 @@ module Fastdfs
       SIZE_LEN = 9
       HEAD_LEN = 10
       EXTNAME_LEN = 6
+      GROUP_NAME_MAX_LEN = 16
 
       def self.header_bytes(cmd, hex_long, erron=0)
         hex_bytes = Utils.number2Buffer(hex_long)

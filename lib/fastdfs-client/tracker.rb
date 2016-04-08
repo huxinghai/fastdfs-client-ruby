@@ -19,15 +19,15 @@ module Fastdfs
       def get_storage
         header = ProtoCommon.header_bytes(@cmd, 0)
         @socket.write(@cmd, header)
-        @socket.receive
+        @socket.receive do |body|
+          storage_ip = Utils.pack_trim(body[ProtoCommon::IPADDR])
+          storage_port = body[ProtoCommon::PORT].unpack("C*").to_pack_long
+          store_path = body[ProtoCommon::BODY_LEN-1].unpack("C*")[0]
 
-        storage_ip = Utils.pack_trim(@socket.content[ProtoCommon::IPADDR])
-        storage_port = @socket.content[ProtoCommon::PORT].unpack("C*").to_pack_long
-        store_path = @socket.content[ProtoCommon::BODY_LEN-1].unpack("C*")[0]
+          Storage.new(storage_ip, storage_port, store_path)
+        end
 
-        storage = Storage.new(storage_ip, storage_port)
-        storage.store_path = store_path
-        return storage
+
       end
     end
 
