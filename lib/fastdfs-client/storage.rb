@@ -4,7 +4,6 @@ module Fastdfs
   module Client
 
     class Storage
-      include Utils
       extend Hook
 
       before(:upload, :delete){ @socket.connection }
@@ -17,7 +16,6 @@ module Fastdfs
         @port = port
         @socket = Socket.new(host, port)
         @extname_len = ProtoCommon::EXTNAME_LEN
-        @header_len = ProtoCommon::HEAD_LEN
         @size_len = ProtoCommon::SIZE_LEN
       end
 
@@ -31,16 +29,7 @@ module Fastdfs
       # header = cmd + body_len  ... 11 ...29
       # write file bytes
       def upload(file)  
-        case file
-
-        when Tempfile
-          _upload(file)
-        when File
-          _upload(file)
-        when String
-        else
-          raise "data type exception #{file}"
-        end
+        _upload(file)
       end
 
       def delete(path, group_name = nil)
@@ -54,7 +43,7 @@ module Fastdfs
         group_bytes = group_name.bytes.fill(0, group_name.length...16)
         path_length = (group_bytes.length + path.bytes.length)
 
-        @socket.write(cmd, (header_bytes(cmd, path_length) + group_bytes + path.bytes))
+        @socket.write(cmd, (ProtoCommon.header_bytes(cmd, path_length) + group_bytes + path.bytes))
         @socket.recv_header
       end
 
@@ -64,29 +53,17 @@ module Fastdfs
 
         extname = File.extname(file)[1..-1]
         ext_name_bs = extname.to_s.bytes.fill(0, extname.length...@extname_len)
-        hex_len_bytes = long_convert_bytes(file.size)
+        hex_len_bytes = Utils.long_convert_bytes(file.size)
         size_byte = [store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
-        hex_bytes = long_convert_bytes(size_byte.length + @extname_len + file.size)
-        header = hex_bytes.fill(0, hex_bytes.length...@header_len)
 
-        header[8] = cmd #cmd
-        header[9] = 0   #erroron
-
+        header = ProtoCommon.header_bytes(cmd, (size_byte.length + @extname_len + file.size))
         pkg = header + size_byte + ext_name_bs
         
         @socket.write(cmd, pkg)
         @socket.write(cmd, IO.read(file))
         @socket.receive
         
-        {group_name: pack_trim(@socket.content[0..15]), path: @socket.content[16..-1]}
-      end
-
-      def header_bytes(cmd, hex_long, erron = 0)
-        hex_bytes = long_convert_bytes(hex_long)
-        header = hex_bytes.fill(0, hex_bytes.length...@header_len)
-        header[8] = cmd
-        header[9] = erron
-        header
+        {group_name: Utils.pack_trim(@socket.content[0..15]), path: @socket.content[16..-1]}
       end
       
     end

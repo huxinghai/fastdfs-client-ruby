@@ -4,7 +4,6 @@ module Fastdfs
   module Client
 
     class Tracker
-      include Utils
       extend Hook
 
       before(:upload, :delete){ @socket.connection }
@@ -18,10 +17,11 @@ module Fastdfs
       end
 
       def get_storage
-        @socket.write(@cmd, ([].fill(0, 0..7) << @cmd << 0))
+        header = ProtoCommon.header_bytes(@cmd, 0)
+        @socket.write(@cmd, header)
         @socket.receive
 
-        storage_ip = pack_trim(@socket.content[ProtoCommon::IPADDR])
+        storage_ip = Utils.pack_trim(@socket.content[ProtoCommon::IPADDR])
         storage_port = @socket.content[ProtoCommon::PORT].unpack("C*").to_pack_long
         store_path = @socket.content[ProtoCommon::BODY_LEN-1].unpack("C*")[0]
 
