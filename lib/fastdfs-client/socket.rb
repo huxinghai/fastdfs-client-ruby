@@ -13,7 +13,7 @@ module Fastdfs
         @host = host
         @port = port
         connection
-        @header_len = 10
+        @header_len = ProtoCommon::HEAD_LEN
         @connection_timeout = 3
         @recv_timeout = 3
       end

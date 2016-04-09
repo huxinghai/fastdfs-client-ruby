@@ -2,17 +2,17 @@ module Fastdfs
   module Client
 
     module ProtoCommon
-      BODY_LEN = 40
+      TRACKER_BODY_LEN = 40
       
       IPADDR = 16..31
-      PORT = 31..-1
+      PORT = 31...-1
       SIZE_LEN = 9
       HEAD_LEN = 10
       EXTNAME_LEN = 6
       GROUP_NAME_MAX_LEN = 16
 
       def self.header_bytes(cmd, hex_long, erron=0)
-        hex_bytes = Utils.number2Buffer(hex_long)
+        hex_bytes = Utils.number_to_Buffer(hex_long)
         header = hex_bytes.fill(0, hex_bytes.length...HEAD_LEN)
         header[8] = cmd
         header[9] = erron
