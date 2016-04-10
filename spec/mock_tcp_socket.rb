@@ -1,5 +1,5 @@
 
-class TCPSocketa
+class TCPSocket
   include Fastdfs::Client
 
   attr_accessor :host, :port, :cmd, :recv_offset, :connect_state
@@ -44,7 +44,6 @@ class TCPSocketa
           group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
           ip = Utils.array_merge([].fill(0, 0...16), TestConfig::STORAGE_IP.bytes)
           port = Utils.array_merge([].fill(0, 0...8), TestConfig::STORAGE_PORT.bytes)
-          debugger
           
           (header+group_name+ip+port)[@recv_offset...@recv_offset+len].pack("C*")
         end

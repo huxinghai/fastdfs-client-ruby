@@ -4,8 +4,6 @@ describe Fastdfs::Client::Tracker do
   # let(:group_name){ "group1" }
   # let{:file_name}{  "M00/04/47/wKgIF1cHcQyAeAF7AAACVHeY6n8267.png" }
 
-  FC = Fastdfs::Client
-
   let(:host){ "192.168.9.16" }
   let(:port){ "22122" }
 
@@ -28,8 +26,8 @@ describe Fastdfs::Client::Tracker do
 
   it "verify the server address and port" do 
     expect(tracker.get_storage.host).to eq(TestConfig::STORAGE_IP)
-    expect(tracker.get_storage.port).to eq(TestConfig::STORAGE_PORT)
-    expect(tracker.get_storage.port).to eq(TestConfig::STORAGE_PORT)
+    expect(tracker.get_storage.port).to eq(TestConfig::STORAGE_PORT.to_s)
+    expect(tracker.get_storage.stroage_path).to eq(TestConfig::STORE_PATH)
   end
 
   it "run server flow" do 
