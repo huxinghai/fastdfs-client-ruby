@@ -4,7 +4,7 @@ module Fastdfs
     module ProtoCommon
       TRACKER_BODY_LEN = 40
       
-      IPADDR = 16..31
+      IPADDR = 16...31
       PORT = 31...-1
       SIZE_LEN = 9
       HEAD_LEN = 10

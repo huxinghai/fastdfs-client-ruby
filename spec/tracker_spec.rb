@@ -26,8 +26,9 @@ describe Fastdfs::Client::Tracker do
 
   it "verify the server address and port" do 
     expect(tracker.get_storage.host).to eq(TestConfig::STORAGE_IP)
-    expect(tracker.get_storage.port).to eq(TestConfig::STORAGE_PORT.to_s)
-    expect(tracker.get_storage.stroage_path).to eq(TestConfig::STORE_PATH)
+    #[0, 0, 0, 0, 0, 89, 216]
+    expect(tracker.get_storage.port.to_s).to eq(TestConfig::STORAGE_PORT)
+    expect(tracker.get_storage.store_path).to eq(TestConfig::STORE_PATH)
   end
 
   it "run server flow" do 

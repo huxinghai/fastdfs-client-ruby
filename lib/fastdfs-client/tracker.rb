@@ -20,11 +20,10 @@ module Fastdfs
         header = ProtoCommon.header_bytes(@cmd, 0)
         @socket.write(@cmd, header)
         @socket.receive do |body|
-          debugger
-          storage_ip = Utils.pack_trim(body[ProtoCommon::IPADDR])
+          storage_ip = body[ProtoCommon::IPADDR].strip
           storage_port = body[ProtoCommon::PORT].unpack("C*").to_pack_long
           store_path = body[ProtoCommon::TRACKER_BODY_LEN-1].unpack("C*")[0]
-
+          
           Storage.new(storage_ip, storage_port, store_path)
         end
 
