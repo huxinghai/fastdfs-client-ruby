@@ -1,5 +1,5 @@
 
-class TCPSocketa
+class TCPSocket
   include Fastdfs::Client
 
   attr_accessor :host, :port, :cmd, :recv_offset, :connect_state
@@ -42,10 +42,11 @@ class TCPSocketa
           header[7] = ProtoCommon::TRACKER_BODY_LEN
 
           group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
-          ip = Utils.array_merge([].fill(0, 0...16), TestConfig::STORAGE_IP.bytes)
-          port = Utils.array_merge([].fill(0, 0...8), TestConfig::STORAGE_PORT.bytes)
+          ip = Utils.array_merge([].fill(0, 0...15), TestConfig::STORAGE_IP.bytes)
+          port = Utils.number_to_Buffer(TestConfig::STORAGE_PORT.to_i)
+          store_path = Array(TestConfig::STORE_PATH)
           
-          (header+group_name+ip+port)[@recv_offset...@recv_offset+len].pack("C*")
+          (header+group_name+ip+port+store_path)[@recv_offset...@recv_offset+len].pack("C*")
         end
       }
     }

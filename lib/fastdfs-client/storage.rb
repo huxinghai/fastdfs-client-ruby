@@ -57,7 +57,7 @@ module Fastdfs
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
 
           {
-            group_name: Utils.pack_trim(body[0...group_name_max_len]), 
+            group_name: body[0...group_name_max_len].strip, 
             path: body[group_name_max_len..-1]
           }
         end
