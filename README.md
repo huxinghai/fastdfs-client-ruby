@@ -2,4 +2,7 @@
 
 fastdfs client for ruby 
 
-### coding...
+### Install
+
+
+### Using

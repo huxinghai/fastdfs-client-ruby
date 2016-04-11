@@ -65,7 +65,8 @@ class TCPSocket
       },
       "12" => {
         recv_bytes: lambda do |len|
-          ProtoCommon.header_bytes(CMD::RESP_CODE, 0).pack("C*")
+          header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+          header.pack("C*")
         end
       }
     }

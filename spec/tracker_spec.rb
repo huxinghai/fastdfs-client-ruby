@@ -8,7 +8,7 @@ describe Fastdfs::Client::Tracker do
   let(:tracker){ FC::Tracker.new(host, port) }
 
   it "initialize the server" do 
-    expect(FC::Socket).to receive(:new).with(host, port) 
+    expect(FC::Socket).to receive(:new).with(host, port, nil) 
     FC::Tracker.new(host, port) 
   end
 

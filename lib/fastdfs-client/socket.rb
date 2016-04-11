@@ -9,13 +9,14 @@ module Fastdfs
     class Socket
       attr_accessor :header, :content, :header_len, :cmd, :socket, :host, :port
 
-      def initialize(host, port)
+      def initialize(host, port, options = {})
         @host = host
         @port = port
         connection
         @header_len = ProtoCommon::HEAD_LEN
-        @connection_timeout = 3
-        @recv_timeout = 3
+        @options = options || {}
+        @connection_timeout = @options[:connection_timeout] || 3
+        @recv_timeout = @options[:recv_timeout] || 3
       end
 
       def write(*args)

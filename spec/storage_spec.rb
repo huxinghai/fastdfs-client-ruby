@@ -9,7 +9,7 @@ describe Fastdfs::Client::Storage do
   let(:storage){ tracker.get_storage }
 
   it "initialize the server" do 
-    expect(FC::Socket).to receive(:new).with(host, port) 
+    expect(FC::Socket).to receive(:new).with(host, port, nil) 
     FC::Storage.new(host, port) 
   end
 
@@ -30,8 +30,11 @@ describe Fastdfs::Client::Storage do
     storage.delete(res[:path], res[:group_name])
   end
 
-  it "recv erron 22 0 is correct, cmd: 12" do 
-
+  it "can delete file raise exception" do 
+    res = storage.upload(TestConfig::FILE)
+    result = FC::ProtoCommon.header_bytes(FC::CMD::RESP_CODE, 0, 22)
+    TCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
+    expect{ storage.delete("fdsaf", res[:group_name]) }.to raise_error(RuntimeError)
   end
 
 end

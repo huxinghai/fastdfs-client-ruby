@@ -9,15 +9,17 @@ module Fastdfs
       before(:upload, :delete){ @socket.connection }
       after(:upload, :delete){ @socket.close }
 
-      attr_accessor :host, :port, :group_name, :store_path, :socket
+      attr_accessor :host, :port, :group_name, :store_path, :socket, :options
 
-      def initialize(host, port, store_path = nil)
+      def initialize(host, port, store_path = nil, options = {})
         @host = host
         @port = port
-        @socket = Socket.new(host, port)
+        @options = options || {}
+        @options = store_path if store_path.is_a?(Hash)
+        @socket = Socket.new(host, port, @options[:socket])
         @extname_len = ProtoCommon::EXTNAME_LEN
-        @size_len = ProtoCommon::SIZE_LEN
-        @store_path = store_path
+        @size_len = ProtoCommon::SIZE_LEN        
+        @store_path = store_path || 0
       end
 
       def upload(file)  
@@ -44,9 +46,9 @@ module Fastdfs
         cmd = CMD::UPLOAD_FILE
 
         extname = File.extname(file)[1..-1]
-        ext_name_bs = extname.to_s.bytes.fill(0, extname.length...@extname_len)
+        ext_name_bs = extname.bytes.fill(0, extname.length...@extname_len)
         hex_len_bytes = Utils.number_to_Buffer(file.size)
-        size_byte = [store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
+        size_byte = [@store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
 
         header = ProtoCommon.header_bytes(cmd, (size_byte.length + @extname_len + file.size))
         pkg = header + size_byte + ext_name_bs
