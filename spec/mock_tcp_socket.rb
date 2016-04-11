@@ -53,14 +53,19 @@ class TCPSocket
       },
       "11" => {
         recv_bytes: lambda do |len|
-
           header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
           group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
           file_name = TestConfig::FILE_NAME.bytes
-          res = (header + group_name + file_name)
-          header[7] = res.length
+          res = (group_name + file_name)
+          header[7] = (header + res).length
+          res = (header + res)
           
           res[@recv_offset...@recv_offset+len].pack("C*")
+        end
+      },
+      "12" => {
+        recv_bytes: lambda do |len|
+          ProtoCommon.header_bytes(CMD::RESP_CODE, 0).pack("C*")
         end
       }
     }

@@ -19,6 +19,19 @@ describe Fastdfs::Client::Storage do
     storage.upload(TestConfig::FILE)
   end
 
+  it "should the result attributes group_name and path" do 
+    res = storage.upload(TestConfig::FILE)
+    expect(res).to include(:group_name)
+    expect(res).to include(:path)
+  end
 
+  it "can delete file by group and path" do 
+    res = storage.upload(TestConfig::FILE)
+    storage.delete(res[:path], res[:group_name])
+  end
+
+  it "recv erron 22 0 is correct, cmd: 12" do 
+
+  end
 
 end
