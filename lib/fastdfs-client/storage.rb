@@ -9,7 +9,7 @@ module Fastdfs
       before(:upload, :delete){ @socket.connection }
       after(:upload, :delete){ @socket.close }
 
-      attr_accessor :host, :port, :group_name, :store_path
+      attr_accessor :host, :port, :group_name, :store_path, :socket
 
       def initialize(host, port, store_path = nil)
         @host = host
@@ -50,12 +50,12 @@ module Fastdfs
 
         header = ProtoCommon.header_bytes(cmd, (size_byte.length + @extname_len + file.size))
         pkg = header + size_byte + ext_name_bs
-        
+
         @socket.write(cmd, pkg)
         @socket.write(cmd, IO.read(file))
         @socket.receive do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
-
+          
           {
             group_name: body[0...group_name_max_len].strip, 
             path: body[group_name_max_len..-1]

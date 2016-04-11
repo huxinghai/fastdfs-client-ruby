@@ -1,8 +1,6 @@
 require 'spec_helper'
 
 describe Fastdfs::Client::Tracker do 
-  # let(:group_name){ "group1" }
-  # let{:file_name}{  "M00/04/47/wKgIF1cHcQyAeAF7AAACVHeY6n8267.png" }
 
   let(:host){ "192.168.9.16" }
   let(:port){ "22122" }

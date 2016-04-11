@@ -9,11 +9,12 @@ class TCPSocket
     @port = port
     @recv_offset = 0
     @connect_state = true
+    @cmd = nil
   end
 
   def write(*args)
     pkg = args[0].unpack("C*")
-    @cmd = pkg[8]
+    @cmd ||= pkg[8] 
   end
 
   def recv(len)
@@ -26,6 +27,7 @@ class TCPSocket
   def close
     @recv_offset = 0
     @connect_state = false
+    @cmd = nil
   end
 
   def closed?
@@ -45,8 +47,20 @@ class TCPSocket
           ip = Utils.array_merge([].fill(0, 0...15), TestConfig::STORAGE_IP.bytes)
           port = Utils.number_to_Buffer(TestConfig::STORAGE_PORT.to_i)
           store_path = Array(TestConfig::STORE_PATH)
-          
+
           (header+group_name+ip+port+store_path)[@recv_offset...@recv_offset+len].pack("C*")
+        end
+      },
+      "11" => {
+        recv_bytes: lambda do |len|
+
+          header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+          group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
+          file_name = TestConfig::FILE_NAME.bytes
+          res = (header + group_name + file_name)
+          header[7] = res.length
+          
+          res[@recv_offset...@recv_offset+len].pack("C*")
         end
       }
     }
