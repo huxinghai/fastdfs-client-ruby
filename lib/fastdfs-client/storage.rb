@@ -31,14 +31,14 @@ module Fastdfs
         raise "path arguments is empty!" if path.blank?
         if group_name.blank?
           group_name = /^\/?(\w+)/.match(path)[1]
-          path = path.gsub("/#{group_name}")
+          path = path.gsub(Regexp.new("/?#{group_name}/?"), "")
         end
         raise "group_name arguments is empty!" if group_name.blank?
         group_bytes = group_name.bytes.fill(0, group_name.length...ProtoCommon::GROUP_NAME_MAX_LEN)
         path_length = (group_bytes.length + path.bytes.length)
 
         @socket.write(cmd, (ProtoCommon.header_bytes(cmd, path_length) + group_bytes + path.bytes))
-        @socket.receive
+        @socket.receive{ true }
       end
 
       private 

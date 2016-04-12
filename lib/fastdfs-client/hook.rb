@@ -31,9 +31,12 @@ module Hook
       _hooks[meth_name][:before].each do |callback|
         self.instance_exec(&callback)
       end
-      return_value = meth.bind(self).call *args, &block
-      _hooks[meth_name][:after].each do |callback|
-        self.instance_exec(&callback)
+      begin
+        return_value = meth.bind(self).call *args, &block  
+      ensure
+        _hooks[meth_name][:after].each do |callback|
+          self.instance_exec(&callback)
+        end
       end
       return_value
     end

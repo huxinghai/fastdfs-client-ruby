@@ -30,9 +30,10 @@ describe Fastdfs::Client::Tracker do
   end
 
   it "run server flow" do 
-    # storage = tracker.get_storage
-    # puts "#{storage.host}, #{storage.port}"
-    # results = storage.upload(File.open("/Users/huxinghai/Documents/shark/app/assets/images/page.png"))
+    storage = tracker.get_storage
+    puts "#{storage.host}, #{storage.port}"
+    results = storage.upload(File.open("/Users/huxinghai/Documents/shark/app/assets/images/page.png"))
+    puts results
     # puts storage.delete(results[:path], results[:group_name])
   end
 end

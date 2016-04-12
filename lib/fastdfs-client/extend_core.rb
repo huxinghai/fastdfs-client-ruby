@@ -9,6 +9,6 @@ end
 class Object
 
   def blank?
-    self.empty? || self.nil?
+    self.nil? || self.empty?
   end
 end
