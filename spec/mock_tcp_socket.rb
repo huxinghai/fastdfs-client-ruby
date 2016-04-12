@@ -1,5 +1,5 @@
 
-class TCPSocketa
+class TCPSocket
   include Fastdfs::Client
 
   attr_accessor :host, :port, :cmd, :recv_offset, :connect_state
