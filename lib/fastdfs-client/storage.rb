@@ -28,20 +28,41 @@ module Fastdfs
 
       def delete(path, group_name = nil)
         cmd = CMD::DELETE_FILE
+        path_bytes = group_path_bytes(cmd, path, group_name)
+        @socket.write(cmd, path_bytes)
+        @socket.receive{ true }
+      end
+
+      def get_metadata(path, group_name = nil)
+        cmd = CMD::GET_METADATA
+        path_bytes = group_path_bytes(cmd, path, group_name)
+        @socket.write(cmd, path_bytes)
+        @socket.receive do |content|
+          res = content.split(ProtoCommon::RECORD_SEPERATOR).map do |c| 
+            c.split(ProtoCommon::FILE_SEPERATOR) 
+          end.flatten
+          Utils.symbolize_keys(Hash[*res])
+        end
+      end
+
+      private
+      def group_path_bytes(cmd, path, group_name = nil)
+        group_name, path = extract_path!(path, group_name)
+        group_bytes = group_name.bytes.fill(0, group_name.length...ProtoCommon::GROUP_NAME_MAX_LEN)
+        path_bytes = group_bytes + path.bytes
+        return (ProtoCommon.header_bytes(cmd, path_bytes.length) + path_bytes)
+      end
+
+      def extract_path!(path, group_name = nil)
         raise "path arguments is empty!" if path.blank?
         if group_name.blank?
           group_name = /^\/?(\w+)/.match(path)[1]
           path = path.gsub(Regexp.new("/?#{group_name}/?"), "")
         end
         raise "group_name arguments is empty!" if group_name.blank?
-        group_bytes = group_name.bytes.fill(0, group_name.length...ProtoCommon::GROUP_NAME_MAX_LEN)
-        path_length = (group_bytes.length + path.bytes.length)
-
-        @socket.write(cmd, (ProtoCommon.header_bytes(cmd, path_length) + group_bytes + path.bytes))
-        @socket.receive{ true }
+        return group_name, path
       end
 
-      private 
       def _upload(file)
         cmd = CMD::UPLOAD_FILE
 

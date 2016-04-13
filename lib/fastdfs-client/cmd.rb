@@ -6,6 +6,7 @@ module Fastdfs
       UPLOAD_FILE = 11
       RESP_CODE = 100
       DELETE_FILE = 12
+      GET_METADATA = 15
     end
 
   end

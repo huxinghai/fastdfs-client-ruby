@@ -5,6 +5,13 @@ module TestConfig
   GROUP_NAME = "group1"
   FILE_NAME = "M00/04/47/wKgIF1cHcQyAeAF7AAACVHeY6n8267.png"
 
+  METADATA = {
+    width: "800",
+    height: "600",
+    bgcolor: 'red',
+    author: "kaka"
+  }
+
   FILE = Tempfile.new("test.jpg")
   FILE.write("testtest")
   FILE.close
