@@ -6,8 +6,8 @@ module Fastdfs
     class Storage
       extend Hook
 
-      before(:upload, :delete){ @socket.connection }
-      after(:upload, :delete){ @socket.close }
+      before(:upload, :delete, :get_metadata, ){ @socket.connection }
+      after(:upload, :delete, :get_metadata, ){ @socket.close }
 
       attr_accessor :host, :port, :group_name, :store_path, :socket, :options
 
@@ -28,14 +28,14 @@ module Fastdfs
 
       def delete(path, group_name = nil)
         cmd = CMD::DELETE_FILE
-        path_bytes = group_path_bytes(cmd, path, group_name)
+        path_bytes = header_path_bytes(cmd, path, group_name)
         @socket.write(cmd, path_bytes)
         @socket.receive{ true }
       end
 
       def get_metadata(path, group_name = nil)
         cmd = CMD::GET_METADATA
-        path_bytes = group_path_bytes(cmd, path, group_name)
+        path_bytes = header_path_bytes(cmd, path, group_name)
         @socket.write(cmd, path_bytes)
         @socket.receive do |content|
           res = content.split(ProtoCommon::RECORD_SEPERATOR).map do |c| 
@@ -45,12 +45,21 @@ module Fastdfs
         end
       end
 
+      def set_metadata(options = {}, path, flag = ProtoCommon::SET_METADATA_FLAG_OVERWRITE)
+        cmd = CMD::SET_METADATA
+        group_bytes = group_path_bytes(cmd, path)
+        
+      end
+
       private
-      def group_path_bytes(cmd, path, group_name = nil)
+      def group_path_bytes(path, group_name = nil)
         group_name, path = extract_path!(path, group_name)
         group_bytes = group_name.bytes.fill(0, group_name.length...ProtoCommon::GROUP_NAME_MAX_LEN)
-        path_bytes = group_bytes + path.bytes
-        return (ProtoCommon.header_bytes(cmd, path_bytes.length) + path_bytes)
+        group_bytes + path.bytes
+      end      
+
+      def header_path_bytes(cmd, path, group_name = nil)
+        return (ProtoCommon.header_bytes(cmd, path_bytes.length) + group_path_bytes(path, group_name))
       end
 
       def extract_path!(path, group_name = nil)

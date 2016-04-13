@@ -7,6 +7,7 @@ module Fastdfs
       RESP_CODE = 100
       DELETE_FILE = 12
       GET_METADATA = 15
+      SET_METADATA = 13
     end
 
   end

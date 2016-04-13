@@ -14,6 +14,9 @@ module Fastdfs
       RECORD_SEPERATOR = "\u0001"
       FILE_SEPERATOR = "\u0002"
 
+      SET_METADATA_FLAG_OVERWRITE = "O"
+      SET_METADATA_FLAG_MERGE = "M"
+
       def self.header_bytes(cmd, hex_long, erron=0)
         hex_bytes = Utils.number_to_Buffer(hex_long)
         header = hex_bytes.fill(0, hex_bytes.length...HEAD_LEN)
