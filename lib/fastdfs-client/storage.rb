@@ -45,21 +45,44 @@ module Fastdfs
         end
       end
 
-      def set_metadata(options = {}, path, flag = ProtoCommon::SET_METADATA_FLAG_OVERWRITE)
+      def set_metadata(path, group_name = nil, options = {}, flag = :cover)
         cmd = CMD::SET_METADATA
-        group_bytes = group_path_bytes(cmd, path)
         
+        unless options.is_a?(Hash)
+          flag = options
+          options = {}
+        end
+
+        if group_name.is_a?(Hash)
+          options = group_name
+          group_name = nil
+        end
+        flag = convert_flag(flag)
+        group_bytes, path_bytes = group_path_bytes(path, group_name)
+        
+        meta_bytes = options.map do |a| 
+          a.join(ProtoCommon::FILE_SEPERATOR) 
+        end.join(ProtoCommon::RECORD_SEPERATOR).bytes
+        meta_bytes << 0 if meta_bytes.blank?
+        size_bytes = Utils.number_to_buffer(path_bytes.length) + Utils.number_to_buffer(meta_bytes.length)
+        size_bytes = (size_bytes).fill(0, size_bytes.length...16)
+        total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length 
+        header_bytes = ProtoCommon.header_bytes(cmd, total + meta_bytes.length)
+        @socket.write(cmd, (header_bytes + size_bytes + flag.bytes + group_bytes + path_bytes))
+        @socket.write(cmd, meta_bytes) 
+        @socket.receive
       end
 
       private
       def group_path_bytes(path, group_name = nil)
         group_name, path = extract_path!(path, group_name)
         group_bytes = group_name.bytes.fill(0, group_name.length...ProtoCommon::GROUP_NAME_MAX_LEN)
-        group_bytes + path.bytes
+        [group_bytes, path.bytes]
       end      
 
       def header_path_bytes(cmd, path, group_name = nil)
-        return (ProtoCommon.header_bytes(cmd, path_bytes.length) + group_path_bytes(path, group_name))
+        path_bytes = group_path_bytes(path, group_name).flatten
+        return (ProtoCommon.header_bytes(cmd, path_bytes.length) + path_bytes)
       end
 
       def extract_path!(path, group_name = nil)
@@ -77,7 +100,7 @@ module Fastdfs
 
         extname = File.extname(file)[1..-1]
         ext_name_bs = extname.bytes.fill(0, extname.length...@extname_len)
-        hex_len_bytes = Utils.number_to_Buffer(file.size)
+        hex_len_bytes = Utils.number_to_buffer(file.size)
         size_byte = [@store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
 
         header = ProtoCommon.header_bytes(cmd, (size_byte.length + @extname_len + file.size))
@@ -93,6 +116,15 @@ module Fastdfs
             path: body[group_name_max_len..-1]
           }
         end
+      end
+
+      def convert_flag(flag)
+        data = {
+          cover: ProtoCommon::SET_METADATA_FLAG_OVERWRITE,
+          merge: ProtoCommon::SET_METADATA_FLAG_MERGE
+        }
+        flag = :cover if flag.blank?
+        data[flag.to_sym]
       end
       
     end

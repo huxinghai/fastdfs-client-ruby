@@ -1,6 +1,6 @@
 module Utils
 
-  def self.number_to_Buffer(num)
+  def self.number_to_buffer(num)
     8.times.map{|i| (num >> (56 - 8 * i)) & 255}
   end
 

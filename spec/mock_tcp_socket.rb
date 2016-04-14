@@ -45,7 +45,7 @@ class TCPSocket
 
           group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
           ip = Utils.array_merge([].fill(0, 0...15), TestConfig::STORAGE_IP.bytes)
-          port = Utils.number_to_Buffer(TestConfig::STORAGE_PORT.to_i)
+          port = Utils.number_to_buffer(TestConfig::STORAGE_PORT.to_i)
           store_path = Array(TestConfig::STORE_PATH)
 
           (header+group_name+ip+port+store_path)[@recv_offset...@recv_offset+len].pack("C*")
@@ -75,6 +75,12 @@ class TCPSocket
           body = TestConfig::METADATA.map{|a| a.join(ProtoCommon::FILE_SEPERATOR)}.join(ProtoCommon::RECORD_SEPERATOR).bytes
           header[7] = body.length
           (header + body)[@recv_offset...@recv_offset+len].pack("C*")
+        end
+      },
+      "13" => {
+        recv_bytes: lambda do |len|
+          header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+          header.pack("C*")
         end
       }
     }
