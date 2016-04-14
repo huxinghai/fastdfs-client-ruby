@@ -59,7 +59,7 @@ module Fastdfs
       def parseHeader
         raise "recv package size #{@header} != #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len
         raise "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE
-        raise "recv erron #{@header[9]} 0 is correct, cmd: #{@cmd}" unless @header[9] == 0
+        raise "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0
         {status: true, body_length: @header[0...8].to_pack_long}
       end
 

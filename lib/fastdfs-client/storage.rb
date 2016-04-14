@@ -57,17 +57,14 @@ module Fastdfs
           options = group_name
           group_name = nil
         end
-        flag = convert_flag(flag)
+        flag = convert_meta_flag(flag)
         group_bytes, path_bytes = group_path_bytes(path, group_name)
-        
-        meta_bytes = options.map do |a| 
-          a.join(ProtoCommon::FILE_SEPERATOR) 
-        end.join(ProtoCommon::RECORD_SEPERATOR).bytes
-        meta_bytes << 0 if meta_bytes.blank?
+        meta_bytes = meta_to_bytes(options)
+
         size_bytes = Utils.number_to_buffer(path_bytes.length) + Utils.number_to_buffer(meta_bytes.length)
         size_bytes = (size_bytes).fill(0, size_bytes.length...16)
-        total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length 
-        header_bytes = ProtoCommon.header_bytes(cmd, total + meta_bytes.length)
+        total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
+        header_bytes = ProtoCommon.header_bytes(cmd, total)
         @socket.write(cmd, (header_bytes + size_bytes + flag.bytes + group_bytes + path_bytes))
         @socket.write(cmd, meta_bytes) 
         @socket.receive
@@ -118,13 +115,21 @@ module Fastdfs
         end
       end
 
-      def convert_flag(flag)
+      def convert_meta_flag(flag)
         data = {
           cover: ProtoCommon::SET_METADATA_FLAG_OVERWRITE,
           merge: ProtoCommon::SET_METADATA_FLAG_MERGE
         }
         flag = :cover if flag.blank?
         data[flag.to_sym]
+      end
+
+      def meta_to_bytes(options = {})
+        meta_bytes = options.map do |a| 
+          a.join(ProtoCommon::FILE_SEPERATOR) 
+        end.join(ProtoCommon::RECORD_SEPERATOR).bytes
+        meta_bytes << 0 if meta_bytes.blank?
+        meta_bytes
       end
       
     end
