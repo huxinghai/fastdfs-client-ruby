@@ -16,6 +16,12 @@ fastdfs client for ruby
 
   @storage.upload(@file)
 
-  #group_name + path
-  @storage.delete(path)
+  @storage.delete(path, group_name)
+
+  # flag params [cover, merge]
+  @storage.set_metadata(path, group_name, {author: "kaka", width: "300"}, flag)
+
+  @storage.get_metadata(path, group_name) 
+  #result: {author: "kaka", width: "300"}
+
 ```
