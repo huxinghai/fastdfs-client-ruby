@@ -41,26 +41,31 @@ module Fastdfs
         !@socket.closed?
       end
 
-      def receive
+      def receive(&block)
         @content = nil
         Timeout.timeout(@recv_timeout) do 
           @header = @socket.recv(@header_len).unpack("C*")
         end
         res_header = parseHeader
-        if res_header[:body_length] > 0
+        if @header[0...8].to_pack_long > 0
           Timeout.timeout(@recv_timeout) do 
             @content = @socket.recv(@header.to_pack_long) 
           end
         end
-        yield @content if block_given?
+        if block_given? && res_header[:status]
+          res = yield(@content)
+          res_header[:result] = res unless res.nil?
+        end
+        res_header
       end
 
       private
       def parseHeader
-        raise "recv package size #{@header} != #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len
-        raise "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE
-        raise "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0
-        {status: true, body_length: @header[0...8].to_pack_long}
+        err_msg = ""
+        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len
+        err_msg = "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE
+        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0
+        {status: err_msg.blank?, err_msg: err_msg}
       end
 
     end
