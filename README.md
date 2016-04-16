@@ -10,18 +10,28 @@ fastdfs client for ruby
 ### Using
 
 ```RUBY
+
+  # return the result format 
+  #  {status: true, err_msg: "", result: ...}
+  #
+
+
   tracker = new Fastdfs::Client::Tracker("192.168.1.1", "22122")
 
   @storage = tracker.get_storage
 
   @storage.upload(@file)
+  #result: {group_name: "group1", path: "m1/xfsd/fds.jpg"}
 
-  @storage.delete(path, group_name)
+  @storage.delete(path, group_name)  
 
   # flag params [cover, merge]
   @storage.set_metadata(path, group_name, {author: "kaka", width: "300"}, flag)
 
   @storage.get_metadata(path, group_name) 
   #result: {author: "kaka", width: "300"}
+
+  @storage.download(path, group_name) 
+  #result: #<Tempfile:/var/folders/m7/bt2j0rk54x555t44dpn4b7bm0000gn/T/test.jpg20160416-43738-1560vq3>  
 
 ```

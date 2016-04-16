@@ -121,10 +121,7 @@ module Fastdfs
         @socket.receive do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
-          {
-            group_name: body[0...group_name_max_len].strip, 
-            path: body[group_name_max_len..-1]
-          }
+          {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
         end
       end
 
