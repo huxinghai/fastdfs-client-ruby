@@ -8,6 +8,7 @@ module Fastdfs
       DELETE_FILE = 12
       GET_METADATA = 15
       SET_METADATA = 13
+      DOWNLOAD_FILE = 14
     end
 
   end

@@ -14,7 +14,7 @@ module Fastdfs
         @header_len = ProtoCommon::HEAD_LEN
         @options = options || {}
         @connection_timeout = @options[:connection_timeout] || 3
-        @recv_timeout = @options[:recv_timeout] || 3
+        @recv_timeout = @options[:recv_timeout] || 20
         connection
       end
 
@@ -42,18 +42,13 @@ module Fastdfs
       end
 
       def receive(&block)
-        @content = nil
-        Timeout.timeout(@recv_timeout) do 
+        timeout_recv do 
           @header = @socket.recv(@header_len).unpack("C*")
         end
         res_header = parseHeader
-        if @header[0...8].to_pack_long > 0
-          Timeout.timeout(@recv_timeout) do 
-            @content = @socket.recv(@header.to_pack_long) 
-          end
-        end
-        if block_given? && res_header[:status]
-          res = yield(@content)
+        if res_header[:status]
+          recv_body if is_recv?
+          res = yield(@content) if block_given?
           res_header[:result] = res unless res.nil?
         end
         res_header
@@ -66,6 +61,34 @@ module Fastdfs
         err_msg = "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE
         err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0
         {status: err_msg.blank?, err_msg: err_msg}
+      end
+
+      def timeout_recv
+        Timeout.timeout(@recv_timeout) do 
+          yield if block_given?
+        end
+      end
+
+      def is_recv?
+        recv_body_len > 0
+      end
+
+      def recv_body_len
+        @header[0...8].to_pack_long
+      end
+
+      def recv_body
+        @content = ""
+        max_len, body_len = ProtoCommon::RECV_MAX_LEN, recv_body_len
+
+        while body_len > 0
+          timeout_recv do 
+            len = [body_len, max_len].min
+            @content << @socket.recv(len) 
+            body_len -= len
+          end
+        end
+        @content = nil if @content.blank?
       end
 
     end

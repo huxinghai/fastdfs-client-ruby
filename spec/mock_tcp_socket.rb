@@ -82,6 +82,14 @@ class TCPSocket
           header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
           header.pack("C*")
         end
+      },
+      "14" => {
+        recv_bytes: lambda do |len|
+          header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+          body = IO.read(TestConfig::FILE).bytes
+          header[7] = body.length
+          (header + body)[@recv_offset...@recv_offset+len].pack("C*")
+        end
       }
     }
   end

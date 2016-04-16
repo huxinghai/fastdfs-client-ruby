@@ -11,6 +11,8 @@ module Fastdfs
       EXTNAME_LEN = 6
       GROUP_NAME_MAX_LEN = 16
 
+      RECV_MAX_LEN = 2 * 1024
+
       RECORD_SEPERATOR = "\u0001"
       FILE_SEPERATOR = "\u0002"
 

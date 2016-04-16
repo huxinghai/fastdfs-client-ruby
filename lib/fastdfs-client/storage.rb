@@ -70,6 +70,19 @@ module Fastdfs
         @socket.receive
       end
 
+      def download(path, group_name = nil)
+        cmd = CMD::DOWNLOAD_FILE
+        group_bytes, path_bytes = group_path_bytes(path, group_name)
+        download_bytes = Utils.number_to_buffer(0) + Utils.number_to_buffer(0)
+
+        header_bytes = ProtoCommon.header_bytes(cmd, group_bytes.length + path_bytes.length + download_bytes.length)
+
+        @socket.write(cmd, header_bytes + download_bytes + group_bytes + path_bytes)
+        @socket.receive do |body|
+          create_tempfile(path, body) if body
+        end
+      end
+
       private
       def group_path_bytes(path, group_name = nil)
         group_name, path = extract_path!(path, group_name)
@@ -130,6 +143,14 @@ module Fastdfs
         end.join(ProtoCommon::RECORD_SEPERATOR).bytes
         meta_bytes << 0 if meta_bytes.blank?
         meta_bytes
+      end
+
+      def create_tempfile(path, body)
+        tmp = Tempfile.new(path.gsub(/\//, "_"))
+        tmp.binmode
+        tmp.write(body)
+        tmp.close
+        tmp
       end
       
     end
