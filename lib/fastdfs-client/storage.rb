@@ -46,8 +46,6 @@ module Fastdfs
       end
 
       def set_metadata(path, group_name = nil, options = {}, flag = :cover)
-        cmd = CMD::SET_METADATA
-        
         unless options.is_a?(Hash)
           flag = options
           options = {}
@@ -57,17 +55,7 @@ module Fastdfs
           options = group_name
           group_name = nil
         end
-        flag = convert_meta_flag(flag)
-        group_bytes, path_bytes = group_path_bytes(path, group_name)
-        meta_bytes = meta_to_bytes(options)
-
-        size_bytes = Utils.number_to_buffer(path_bytes.length) + Utils.number_to_buffer(meta_bytes.length)
-        size_bytes = (size_bytes).fill(0, size_bytes.length...16)
-        total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
-        header_bytes = ProtoCommon.header_bytes(cmd, total)
-        @socket.write(cmd, (header_bytes + size_bytes + flag.bytes + group_bytes + path_bytes))
-        @socket.write(cmd, meta_bytes) 
-        @socket.receive
+        _set_metadata(path, group_name, options, flag)
       end
 
       def download(path, group_name = nil)
@@ -105,7 +93,7 @@ module Fastdfs
         return group_name, path
       end
 
-      def _upload(file)
+      def _upload(file, options = {})
         cmd = CMD::UPLOAD_FILE
 
         extname = File.extname(file)[1..-1]
@@ -121,8 +109,26 @@ module Fastdfs
         @socket.receive do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
-          {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
+          res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
+          _set_metadata(res[:path], res[:group_name], options)
+          res
         end
+      end
+
+      def _set_metadata(path, group_name = nil, options = {}, flag = :cover)
+        cmd = CMD::SET_METADATA
+        
+        flag = convert_meta_flag(flag)
+        group_bytes, path_bytes = group_path_bytes(path, group_name)
+        meta_bytes = meta_to_bytes(options)
+
+        size_bytes = Utils.number_to_buffer(path_bytes.length) + Utils.number_to_buffer(meta_bytes.length)
+        size_bytes = (size_bytes).fill(0, size_bytes.length...16)
+        total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
+        header_bytes = ProtoCommon.header_bytes(cmd, total)
+        @socket.write(cmd, (header_bytes + size_bytes + flag.bytes + group_bytes + path_bytes))
+        @socket.write(cmd, meta_bytes) 
+        @socket.receive
       end
 
       def convert_meta_flag(flag)
