@@ -4,8 +4,7 @@ fastdfs client for ruby
 
 ### Install
 
-    #Gemfile
-    gem 'fastdfs-client', git: "git@github.com:huxinghai1988/fastdfs-client-ruby.git"
+    gem install 'fastdfs-client'
 
 ### Using
 
