@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fastdfs-client (0.0.5)
+    fastdfs-client (1.0.0)
 
 GEM
   remote: http://gems.ruby-china.org/
