@@ -35,7 +35,6 @@ module Fastdfs
             @socket = TCPSocket.new(@host, @port)  
           end
         end
-        @socket
       end
 
       def connected

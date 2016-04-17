@@ -6,7 +6,8 @@ module Fastdfs
 
       def initialize(cmd, socket, content_len, header = [])
         @cmd = cmd
-        @socket = socket.connection
+        socket.connection
+        @socket = socket
         @header = ProtoCommon.header_bytes(cmd, content_len) + header
         @content = []
       end
