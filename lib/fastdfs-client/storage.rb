@@ -6,8 +6,8 @@ module Fastdfs
     class Storage
       extend Hook
 
-      before(:upload, :delete, :get_metadata, ){ @socket.connection }
-      after(:upload, :delete, :get_metadata, ){ @socket.close }
+      # before(:upload, :delete, :get_metadata, ){ @socket.connection }
+      # after(:upload, :delete, :get_metadata, ){ @socket.close }
 
       attr_accessor :host, :port, :group_name, :store_path, :socket, :options
 
@@ -94,19 +94,13 @@ module Fastdfs
       end
 
       def _upload(file, options = {})
-        cmd = CMD::UPLOAD_FILE
+        ext_name_bs = File.extname(file)[1..-1].bytes.full_fill(0, @extname_len)
+        size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, @size_len)
+        content_len = (@size_len + @extname_len + file.size)
 
-        extname = File.extname(file)[1..-1]
-        ext_name_bs = extname.bytes.fill(0, extname.length...@extname_len)
-        hex_len_bytes = Utils.number_to_buffer(file.size)
-        size_byte = [@store_path].concat(hex_len_bytes).fill(0, (hex_len_bytes.length+1)...@size_len)
-
-        header = ProtoCommon.header_bytes(cmd, (size_byte.length + @extname_len + file.size))
-        pkg = header + size_byte + ext_name_bs
-
-        @socket.write(cmd, pkg)
-        @socket.write(cmd, IO.read(file))
-        @socket.receive do |body|
+        client = ClientProxy.new(CMD::UPLOAD_FILE, @socket, content_len, size_byte + ext_name_bs)
+        client.push_content{ IO.read(file) }
+        client.dispose do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
