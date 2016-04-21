@@ -40,7 +40,7 @@ describe Fastdfs::Client::Storage do
   it "can delete file raise exception" do 
     res = storage.upload(TestConfig::FILE)[:result]
     result = FC::ProtoCommon.header_bytes(FC::CMD::RESP_CODE, 0, 22)
-    TCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
+    MockTCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
     expect( storage.delete("fdsaf", res[:group_name])[:status] ).to be_falsey
   end
 
@@ -58,6 +58,5 @@ describe Fastdfs::Client::Storage do
     expect(res[:status]).to be_truthy
     expect(res[:result]).to be_an_instance_of(Tempfile)
     expect(IO.read(res[:result])).to eq(IO.read(TestConfig::FILE))
-
   end
 end

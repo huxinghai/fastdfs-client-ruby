@@ -29,6 +29,13 @@ describe Fastdfs::Client::Tracker do
     expect(tracker.get_storage.store_path).to eq(TestConfig::STORE_PATH)
   end
 
+  it "get to the server failed" do 
+    result = FC::ProtoCommon.header_bytes(FC::CMD::RESP_CODE, 0, 22)
+    MockTCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
+    expect(tracker.get_storage).to be_a_kind_of(Hash)
+    expect(tracker.get_storage[:status]).to be_falsey
+  end
+
   it "run server flow" do 
     # storage = tracker.get_storage
     # puts "#{storage.host}, #{storage.port}"
