@@ -15,6 +15,7 @@ class MockTCPSocket
   def write(*args)
     pkg = args[0].unpack("C*")
     @cmd ||= pkg[8] 
+    sleep(2)
   end
 
   def recv(len)

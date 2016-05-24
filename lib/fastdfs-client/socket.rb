@@ -31,8 +31,8 @@ module Fastdfs
 
       def connection
         if @socket.nil? || !connected
-          Timeout.timeout(@connection_timeout) do
-            @socket = TCPSocket.new(@host, @port)  
+          @socket = Timeout.timeout(@connection_timeout) do
+            TCPSocket.new(@host, @port)  
           end
         end
       end
@@ -42,8 +42,8 @@ module Fastdfs
       end
 
       def receive(&block)
-        timeout_recv do 
-          @header = @socket.recv(@header_len).unpack("C*")
+        @header = timeout_recv do 
+          @socket.recv(@header_len).unpack("C*")
         end
         res_header = parseHeader
         if res_header[:status]

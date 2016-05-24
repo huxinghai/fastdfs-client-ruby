@@ -8,7 +8,8 @@ module Fastdfs
       attr_accessor :socket, :cmd, :options
 
       def initialize(host, port, options = {})
-        @socket = Socket.new(host, port, options[:socket])
+        @options = options
+        @socket = Socket.new(host, port, @options[:socket])
         @cmd = CMD::STORE_WITHOUT_GROUP_ONE
       end
 
@@ -19,7 +20,7 @@ module Fastdfs
           storage_port = body[ProtoCommon::PORT].unpack("C*").to_pack_long
           store_path = body[ProtoCommon::TRACKER_BODY_LEN-1].unpack("C*")[0]
         
-          Storage.new(storage_ip, storage_port, store_path, options)
+          Storage.new(storage_ip, storage_port, store_path, @options)
         end
         res[:status] ? res[:result] : res
       end
