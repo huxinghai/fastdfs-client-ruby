@@ -4,14 +4,14 @@ module Fastdfs
   module Client
 
     class Storage
-      attr_accessor :host, :port, :group_name, :store_path, :socket, :options
+      attr_accessor :group_name, :store_path, :proxy, :options, :socket
 
       def initialize(host, port, store_path = nil, options = {})
-        @host = host
-        @port = port
         @options = options || {}
         @options = store_path if store_path.is_a?(Hash)
-        @socket = Socket.new(host, port, @options[:socket])
+
+        @proxy = ClientProxy.new(host, port, @options[:socket])
+        @socket = @proxy.socket
         @extname_len = ProtoCommon::EXTNAME_LEN
         @size_len = ProtoCommon::SIZE_LEN        
         @store_path = store_path || 0
@@ -22,9 +22,7 @@ module Fastdfs
         size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, @size_len)
         content_len = (@size_len + @extname_len + file.size)
 
-        client = ClientProxy.new(CMD::UPLOAD_FILE, @socket, content_len, size_byte + ext_name_bs)
-        client.push_content{ IO.read(file) }
-        client.dispose do |body|
+        @proxy.dispose(CMD::UPLOAD_FILE, content_len, size_byte + ext_name_bs, IO.read(file)) do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
@@ -35,14 +33,12 @@ module Fastdfs
 
       def delete(path, group_name = nil)
         path_bytes = group_path_bytes(path, group_name).flatten
-        client = ClientProxy.new(CMD::DELETE_FILE, @socket, path_bytes.length, path_bytes)
-        client.dispose
+        @proxy.dispose(CMD::DELETE_FILE, path_bytes.length, path_bytes)
       end
 
       def get_metadata(path, group_name = nil)
         path_bytes = group_path_bytes(path, group_name).flatten
-        client = ClientProxy.new(CMD::GET_METADATA, @socket, path_bytes.length, path_bytes)
-        client.dispose do |body|
+        @proxy.dispose(CMD::GET_METADATA, path_bytes.length, path_bytes) do |body|
           res = body.split(ProtoCommon::RECORD_SEPERATOR).map do |c| 
             c.split(ProtoCommon::FILE_SEPERATOR) 
           end.flatten
@@ -51,15 +47,8 @@ module Fastdfs
       end
 
       def set_metadata(path, group_name = nil, options = {}, flag = :cover)
-        unless options.is_a?(Hash)
-          flag = options
-          options = {}
-        end
-
-        if group_name.is_a?(Hash)
-          options = group_name
-          group_name = nil
-        end
+        flag, options = options, {} unless options.is_a?(Hash)
+        options, group_name = group_name, nil if group_name.is_a?(Hash)
         _set_metadata(path, group_name, options, flag)
       end
 
@@ -67,8 +56,7 @@ module Fastdfs
         path_bytes = group_path_bytes(path, group_name).flatten
         download_bytes = Utils.number_to_buffer(0) + Utils.number_to_buffer(0)
         data = download_bytes + path_bytes
-        client = ClientProxy.new(CMD::DOWNLOAD_FILE, @socket, data.length, data)
-        client.dispose do |body|
+        @proxy.dispose(CMD::DOWNLOAD_FILE, data.length, data) do |body|
           create_tempfile(path, body) if body
         end
       end
@@ -104,9 +92,7 @@ module Fastdfs
         size_bytes = (size_bytes).full_fill(0, 16)
         total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
 
-        client = ClientProxy.new(CMD::SET_METADATA, @socket, total, (size_bytes + flag.bytes + group_bytes + path_bytes))
-        client.push_content{ meta_bytes }
-        client.dispose
+        @proxy.dispose(CMD::SET_METADATA, total, (size_bytes + flag.bytes + group_bytes + path_bytes), meta_bytes)
       end
 
       def convert_meta_flag(flag)

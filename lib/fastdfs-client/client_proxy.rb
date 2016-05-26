@@ -2,25 +2,22 @@ module Fastdfs
   module Client
 
     class ClientProxy
-      attr_accessor :data, :header, :content, :socket
+      attr_accessor :host, :port, :socket
 
-      def initialize(cmd, socket, content_len, header = [])
-        @cmd = cmd
-        socket.connection
-        @socket = socket
-        @header = ProtoCommon.header_bytes(cmd, content_len) + header
-        @content = []
+      def initialize(host, port, options = {})
+        options ||= {}
+        @host = host
+        @port = port
+        
+        @socket = Socket.new(host, port, options[:socket])
       end
 
-      def push_content
-        raise "argument not block!" unless block_given?
-        @content << yield
-      end
-
-      def dispose(&block)
-        @socket.write(@cmd, @header)
-        @content.each do |c|
-          @socket.write(@cmd, c)
+      def dispose(cmd, content_len, header = [], content = [], &block)
+        @socket.connection
+        full_header = ProtoCommon.header_bytes(cmd, content_len) + header
+        @socket.write(cmd, full_header)
+        Array(@content).each do |c|
+          @socket.write(cmd, c)
         end
         @socket.receive &block
       ensure
