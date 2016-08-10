@@ -18,7 +18,7 @@ module Fastdfs
       end
 
       def upload(file, options = {})  
-        ext_name_bs = File.extname(file)[1..-1].bytes.full_fill(0, @extname_len)
+        ext_name_bs = File.extname(file)[1..-1].to_s.bytes.full_fill(0, @extname_len)
         size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, @size_len)
         content_len = (@size_len + @extname_len + file.size)
 
