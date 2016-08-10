@@ -28,7 +28,7 @@ module Fastdfs
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
-          _set_metadata(res[:path], res[:group_name], options) unless options.blank?
+          _set_metadata(res[:path], res[:group_name], options) unless Utils.is_blank?(options)
           res
         end
       end
@@ -86,12 +86,11 @@ module Fastdfs
       end
 
       def extract_path!(path, group_name = nil)
-        raise "path arguments is empty!" if path.blank?
-        if group_name.blank?
+        raise "path arguments is empty!" if Utils.is_blank? path
+        if Utils.is_blank? group_name
           group_name = /^\/?(\w+)/.match(path)[1]
           path = path.gsub(Regexp.new("/?#{group_name}/?"), "")
         end
-        raise "group_name arguments is empty!" if group_name.blank?
         return group_name, path
       end
 
@@ -114,7 +113,7 @@ module Fastdfs
           cover: ProtoCommon::SET_METADATA_FLAG_OVERWRITE,
           merge: ProtoCommon::SET_METADATA_FLAG_MERGE
         }
-        flag = :cover if flag.blank?
+        flag ||= :cover 
         data[flag.to_sym]
       end
 
@@ -122,7 +121,7 @@ module Fastdfs
         meta_bytes = options.map do |a| 
           a.join(ProtoCommon::FILE_SEPERATOR) 
         end.join(ProtoCommon::RECORD_SEPERATOR).bytes
-        meta_bytes << 0 if meta_bytes.blank?
+        meta_bytes << 0 if meta_bytes.length <= 0
         meta_bytes
       end
 

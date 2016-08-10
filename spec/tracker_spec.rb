@@ -37,9 +37,9 @@ describe Fastdfs::Client::Tracker do
   end
 
   it "run server flow" do 
-    # 1.times.map do
-    #   tracker.get_storage
-    # end
+    1.times.map do
+      tracker.get_storage
+    end
 
     # storage = tracker.get_storage
     # puts "#{storage.host}, #{storage.port}"

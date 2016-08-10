@@ -56,11 +56,11 @@ module Fastdfs
 
       private
       def parseHeader
-        err_msg = ""
-        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len
-        err_msg = "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE
-        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0
-        {status: err_msg.blank?, err_msg: err_msg}
+        err_msg = nil
+        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len || err_msg
+        err_msg = "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE || err_msg
+        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0 || err_msg
+        {status: err_msg.nil?, err_msg: err_msg}
       end
 
       def timeout_recv
@@ -88,7 +88,7 @@ module Fastdfs
             body_len -= len
           end
         end
-        @content = nil if @content.blank?
+        @content = nil if Utils.is_blank? @content
       end
 
     end
