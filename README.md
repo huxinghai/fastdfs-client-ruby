@@ -15,7 +15,7 @@ fastdfs client for ruby
   #
 
 
-  tracker = new Fastdfs::Client::Tracker("192.168.1.1", "22122")
+  tracker = Fastdfs::Client::Tracker.new("192.168.1.1", "22122")
 
   @storage = tracker.get_storage
 

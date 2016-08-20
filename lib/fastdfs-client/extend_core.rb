@@ -8,10 +8,3 @@ class Array
     self.fill(val, self.length...len)
   end
 end
-
-class Object
-
-  def blank?
-    self.nil? || self.empty?
-  end
-end
