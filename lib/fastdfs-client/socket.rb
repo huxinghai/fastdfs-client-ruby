@@ -29,12 +29,13 @@ module Fastdfs
         @socket.close if connected
       end
 
-      def connection
+      def connection(&block)
         if @socket.nil? || !connected
           @socket = Timeout.timeout(@connection_timeout) do
             TCPSocket.new(@host, @port)  
           end
         end
+        yield if block_given?
       end
 
       def connected
@@ -58,7 +59,7 @@ module Fastdfs
       def parseHeader
         err_msg = nil
         err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len || err_msg
-        err_msg = "recv cmd: #{@header[8]} is not correct, expect cmd: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE || err_msg
+        err_msg = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE || err_msg
         err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0 || err_msg
         {status: err_msg.nil?, err_msg: err_msg}
       end

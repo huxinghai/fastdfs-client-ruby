@@ -13,7 +13,7 @@ describe Fastdfs::Client::Tracker do
   end
 
   it "should have access to the storage connection" do
-    expect(tracker.socket).to receive(:connection)
+    expect(tracker.socket).to receive(:connection).and_return({})
     expect(tracker.socket).to receive(:close)
     tracker.get_storage
   end
@@ -37,13 +37,20 @@ describe Fastdfs::Client::Tracker do
   end
 
   it "run server flow" do 
-    1.times.map do
-      tracker.get_storage
+    items = 5.times.map do
+      Thread.new do 
+        storage = tracker.get_storage
+        results = storage.upload(File.open(File.expand_path("../page.png", __FILE__)))[:result]
+        puts results
+        puts storage.delete(results[:path], results[:group_name])
+      end
     end
+
+    items.each{|item|  item.join }
 
     # storage = tracker.get_storage
     # puts "#{storage.host}, #{storage.port}"
-    # results = storage.upload(File.open("/Users/huxinghai/Documents/shark/app/assets/images/page.png"))
+    # results = storage.upload(File.open("page.png"))
     # puts results
     # puts storage.delete(results[:path], results[:group_name])
   end

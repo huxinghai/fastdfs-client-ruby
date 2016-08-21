@@ -1,10 +1,15 @@
+require 'monitor'
+
 module Fastdfs
   module Client
 
     class ClientProxy
+      include MonitorMixin
+
       attr_accessor :host, :port, :socket
 
       def initialize(host, port, options = {})
+        super()
         options ||= {}
         @host = host
         @port = port
@@ -13,13 +18,16 @@ module Fastdfs
       end
 
       def dispose(cmd, content_len, header = [], content = [], &block)
-        @socket.connection
-        full_header = ProtoCommon.header_bytes(cmd, content_len) + header
-        @socket.write(cmd, full_header)
-        Array(@content).each do |c|
-          @socket.write(cmd, c)
+        synchronize do
+          @socket.connection do 
+            full_header = ProtoCommon.header_bytes(cmd, content_len) + header
+            @socket.write(cmd, full_header)
+            Array(@content).each do |c|
+              @socket.write(cmd, c)
+            end
+            @socket.receive &block
+          end
         end
-        @socket.receive &block
       ensure
         @socket.close
       end
