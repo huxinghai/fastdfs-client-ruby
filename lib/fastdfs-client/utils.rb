@@ -10,11 +10,4 @@ module Utils
     arr1
   end
 
-  def self.symbolize_keys(obj)
-    obj.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
-  end
-
-  def self.is_blank?(obj)
-    obj.nil? || obj.empty?
-  end
 end

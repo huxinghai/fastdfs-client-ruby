@@ -8,3 +8,31 @@ class Array
     self.fill(val, self.length...len)
   end
 end
+
+
+class NilClass
+  def blank?
+    true
+  end
+end
+
+class String
+  def blank?
+    self.strip.empty?
+  end
+end
+
+class Object
+  def blank?
+    respond_to?(:empty?) ? empty? : !self
+  end
+end
+
+
+class Hash
+
+  def fs_symbolize_keys
+    defined?(super) ? super : self.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+  end
+
+end

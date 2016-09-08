@@ -18,7 +18,7 @@ module Fastdfs
       end
 
       def upload(file, options = {})  
-        ext_name_bs = File.extname(file)[1..-1].to_s.bytes.full_fill(0, @extname_len)
+        ext_name_bs = File.extname(file)[1..@extname_len].to_s.bytes.full_fill(0, @extname_len)
         size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, @size_len)
         content_len = (@size_len + @extname_len + file.size)
 
@@ -26,7 +26,7 @@ module Fastdfs
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
-          _set_metadata(res[:path], res[:group_name], options) unless Utils.is_blank?(options)
+          _set_metadata(res[:path], res[:group_name], options) unless options.blank?
           res
         end
       end
@@ -42,7 +42,7 @@ module Fastdfs
           res = body.split(ProtoCommon::RECORD_SEPERATOR).map do |c| 
             c.split(ProtoCommon::FILE_SEPERATOR) 
           end.flatten
-          Utils.symbolize_keys(Hash[*res])
+          Hash[*res].fs_symbolize_keys
         end
       end
 
@@ -74,8 +74,8 @@ module Fastdfs
       end
 
       def extract_path!(path, group_name = nil)
-        raise "path arguments is empty!" if Utils.is_blank? path
-        if Utils.is_blank? group_name
+        raise "path arguments is empty!" if path.blank?
+        if group_name.blank?
           group_name = /^\/?(\w+)/.match(path)[1]
           path = path.gsub(Regexp.new("/?#{group_name}/?"), "")
         end

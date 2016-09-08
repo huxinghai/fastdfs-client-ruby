@@ -91,7 +91,7 @@ module Fastdfs
             body_len -= len
           end
         end
-        @content = nil if Utils.is_blank? @content
+        @content = nil if @content.blank?
       end
 
     end

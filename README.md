@@ -9,6 +9,8 @@ fastdfs client for ruby
 ### Using
 
 ```RUBY
+  
+  require 'fastdfs-client'
 
   # return the result format 
   #  {status: true, err_msg: "", result: ...}
