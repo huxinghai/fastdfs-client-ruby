@@ -24,34 +24,31 @@ describe Fastdfs::Client::Tracker do
 
   it "verify the server address and port" do 
     expect(tracker.get_storage.socket.host).to eq(TestConfig::STORAGE_IP)
-    #[0, 0, 0, 0, 0, 89, 216, 0]
+
     expect(tracker.get_storage.socket.port.to_s).to eq(TestConfig::STORAGE_PORT)
     expect(tracker.get_storage.store_path).to eq(TestConfig::STORE_PATH)
   end
 
   it "get to the server failed" do 
     result = FC::ProtoCommon.header_bytes(FC::CMD::RESP_CODE, 0, 22)
-    MockTCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
+    TCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
     expect(tracker.get_storage).to be_a_kind_of(Hash)
     expect(tracker.get_storage[:status]).to be_falsey
   end
 
-  it "run server flow" do 
-    items = 5.times.map do
+  it "multi thread upload" do 
+    items = 6.times.map do
       Thread.new do 
         storage = tracker.get_storage
-        results = storage.upload(File.open(File.expand_path("../page.png", __FILE__)))[:result]
-        puts results
-        puts storage.delete(results[:path], results[:group_name])
+        res = storage.upload(File.open(File.expand_path("../page.png", __FILE__)))
+        expect(res[:status]).to be_truthy
+        results = res[:result]
+        results = storage.delete(results[:path], results[:group_name])
+        expect(res[:status]).to be_truthy
       end
     end
 
-    items.each{|item|  item.join }
-
-    # storage = tracker.get_storage
-    # puts "#{storage.host}, #{storage.port}"
-    # results = storage.upload(File.open("page.png"))
-    # puts results
-    # puts storage.delete(results[:path], results[:group_name])
+    items.map{|item|  item.join }
   end
+
 end

@@ -22,7 +22,7 @@ module Fastdfs
           @socket.connection do 
             full_header = ProtoCommon.header_bytes(cmd, content_len) + header
             @socket.write(cmd, full_header)
-            Array(@content).each do |c|
+            Array(content).each do |c|
               @socket.write(cmd, c)
             end
             @socket.receive &block

@@ -90,8 +90,7 @@ module Fastdfs
         size_bytes = Utils.number_to_buffer(path_bytes.length) + Utils.number_to_buffer(meta_bytes.length)
         size_bytes = (size_bytes).full_fill(0, 16)
         total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
-
-        @proxy.dispose(CMD::SET_METADATA, total, (size_bytes + flag.bytes + group_bytes + path_bytes), meta_bytes)
+        @proxy.dispose(CMD::SET_METADATA, total, (size_bytes + flag.bytes + group_bytes + path_bytes), meta_bytes.pack("C*"))
       end
 
       def convert_meta_flag(flag)

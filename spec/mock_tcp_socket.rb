@@ -13,12 +13,13 @@ class MockTCPSocket
   end
 
   def write(*args)
-    sleep(0..7)
     pkg = args[0].unpack("C*")
     @cmd ||= pkg[8]
+    sleep(rand(0..4))
   end
 
   def recv(len)
+    sleep(rand(0..3))
     data = case @cmd
     when 101
       gate_tracker(len)

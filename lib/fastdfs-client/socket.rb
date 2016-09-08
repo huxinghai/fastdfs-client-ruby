@@ -19,8 +19,10 @@ module Fastdfs
       end
 
       def write(*args)
+        debugger if args[1] == 119
         @cmd = args.shift
         pkg = args.shift
+
         pkg = pkg.pack("C*") if pkg.is_a?(Array)
         @socket.write pkg
       end
