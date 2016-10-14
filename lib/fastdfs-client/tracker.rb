@@ -5,8 +5,7 @@ module Fastdfs
 
     class Tracker
       
-      attr_accessor :options
-      attr_reader :cmd, :socket
+      attr_accessor :options, :socket
 
       def initialize(host, port, options = {})
         @options = options
@@ -16,7 +15,7 @@ module Fastdfs
       end
 
       def get_storage
-        res = @proxy.dispose(@cmd, 0) do |body|
+        res = @proxy.dispose(@cmd) do |body|
           storage_ip = body[ProtoCommon::IPADDR].strip
           storage_port = body[ProtoCommon::PORT].unpack("C*").to_pack_long
           store_path = body[ProtoCommon::TRACKER_BODY_LEN-1].unpack("C*")[0]

@@ -5,3 +5,4 @@ require 'fastdfs-client/cmd'
 require 'fastdfs-client/proto_common'
 require 'fastdfs-client/utils'
 require "fastdfs-client/tracker"
+

@@ -8,7 +8,6 @@ module Fastdfs
 
     class Socket
       attr_accessor :socket, :host, :port
-      attr_reader :header, :content, :header_len, :cmd
 
       def initialize(host, port, options = {})
         @host, @port = host, port

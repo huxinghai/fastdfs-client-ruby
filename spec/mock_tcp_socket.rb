@@ -14,6 +14,7 @@ class MockTCPSocket
 
   def write(*args)
     pkg = args[0].unpack("C*")
+    @content = pkg
     @cmd ||= pkg[8]
     sleep(rand(0..4))
   end
@@ -55,7 +56,7 @@ class MockTCPSocket
 
     group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
     ip = Utils.array_merge([].fill(0, 0...15), TestConfig::STORAGE_IP.bytes)
-    port = Utils.number_to_buffer(TestConfig::STORAGE_PORT.to_i)
+    port = TestConfig::STORAGE_PORT.to_i.to_eight_buffer
     store_path = Array(TestConfig::STORE_PATH)
 
     (header+group_name+ip+port+store_path)[@recv_offset...@recv_offset+len].pack("C*")

@@ -11,13 +11,13 @@ module Fastdfs
       DOWNLOAD_FILE = 14
 
       MAPPING_NAME = {
-        101: "GET STORAGE",
-        11: "UPLOAD FILE",
-        101: "RESP CODE",
-        12: "DELETE FILE",
-        15: "GET METADATA",
-        13: "SET METADATA",
-        14: "DOWNLOAD FILE"
+        101 => "GET STORAGE",
+        11 => "UPLOAD FILE",
+        101 => "RESP CODE",
+        12 => "DELETE FILE",
+        15 => "GET METADATA",
+        13 => "SET METADATA",
+        14 => "DOWNLOAD FILE"
       }
     end
 

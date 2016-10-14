@@ -20,7 +20,7 @@ module Fastdfs
       SET_METADATA_FLAG_MERGE = "M"
 
       def self.header_bytes(cmd, hex_long, erron=0)
-        hex_bytes = Utils.number_to_buffer(hex_long)
+        hex_bytes = hex_long.to_eight_buffer
         header = hex_bytes.fill(0, hex_bytes.length...HEAD_LEN)
         header[8] = cmd
         header[9] = erron

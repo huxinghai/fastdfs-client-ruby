@@ -21,18 +21,21 @@ fastdfs client for ruby
 
   @storage = tracker.get_storage
 
-  @storage.upload(@file)
-  #result: {group_name: "group1", path: "m1/xfsd/fds.jpg"}
+  if @storage.is_a?(Fastdfs::Client::Storage)
 
-  @storage.delete(path, group_name)  
+    @storage.upload(@file)
+    #result: {group_name: "group1", path: "m1/xfsd/fds.jpg"}
 
-  # flag params [cover, merge]
-  @storage.set_metadata(path, group_name, {author: "kaka", width: "300"}, flag)
+    @storage.delete(path, group_name)  
 
-  @storage.get_metadata(path, group_name) 
-  #result: {author: "kaka", width: "300"}
+    # flag params [cover, merge]
+    @storage.set_metadata(path, group_name, {author: "kaka", width: "300"}, flag)
 
-  @storage.download(path, group_name) 
-  #result: #<Tempfile:/var/folders/m7/bt2j0rk54x555t44dpn4b7bm0000gn/T/test.jpg20160416-43738-1560vq3>  
+    @storage.get_metadata(path, group_name) 
+    #result: {author: "kaka", width: "300"}
+
+    @storage.download(path, group_name) 
+    #result: #<Tempfile:/var/folders/m7/bt2j0rk54x555t44dpn4b7bm0000gn/T/test.jpg20160416-43738-1560vq3>  
+  end
 
 ```

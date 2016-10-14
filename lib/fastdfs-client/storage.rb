@@ -4,7 +4,7 @@ module Fastdfs
   module Client
 
     class Storage
-      attr_accessor :proxy, :options, :socket
+      attr_accessor :proxy, :options, :socket, :store_path
 
       def initialize(host, port, store_path = nil, options = {})
         @options = options || {}
@@ -15,12 +15,12 @@ module Fastdfs
         @store_path = store_path || 0
       end
 
-      def upload(file, options = {})  
-        ext_name_bs = File.extname(file)[1..extname_len].to_s.bytes.full_fill(0, extname_len)
-        size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, size_len)
-        content_len = (size_len + extname_len + file.size)
+      def upload(_file, options = {})  
+        file, ext_name_bytes = convert_file_info(_file)
+        size_byte = [@store_path].concat(file.size.to_eight_buffer).full_fill(0, file_size_len)
+        content_len = file_size_len + extname_len + file.size
 
-        @proxy.dispose(CMD::UPLOAD_FILE, content_len, size_byte + ext_name_bs, IO.read(file)) do |body|
+        @proxy.dispose(CMD::UPLOAD_FILE, size_byte + ext_name_bytes, IO.read(file)) do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
@@ -30,13 +30,13 @@ module Fastdfs
       end
 
       def delete(path, group_name = nil)
-        path_bytes = group_path_bytes(path, group_name).flatten
-        @proxy.dispose(CMD::DELETE_FILE, path_bytes.length, path_bytes)
+        header_bytes = group_path_bytes(path, group_name).flatten
+        @proxy.dispose(CMD::DELETE_FILE, header_bytes)
       end
 
       def get_metadata(path, group_name = nil)
-        path_bytes = group_path_bytes(path, group_name).flatten
-        @proxy.dispose(CMD::GET_METADATA, path_bytes.length, path_bytes) do |body|
+        header_bytes = group_path_bytes(path, group_name).flatten
+        @proxy.dispose(CMD::GET_METADATA, header_bytes) do |body|
           res = body.split(ProtoCommon::RECORD_SEPERATOR).map do |c| 
             c.split(ProtoCommon::FILE_SEPERATOR) 
           end.flatten
@@ -52,9 +52,8 @@ module Fastdfs
 
       def download(path, group_name = nil)
         path_bytes = group_path_bytes(path, group_name).flatten
-        download_bytes = Utils.number_to_buffer(0) + Utils.number_to_buffer(0)
-        data = download_bytes + path_bytes
-        @proxy.dispose(CMD::DOWNLOAD_FILE, data.length, data) do |body|
+        header_bytes = 0.to_eight_buffer.concat(0.to_eight_buffer).concat(path_bytes)
+        @proxy.dispose(CMD::DOWNLOAD_FILE, header_bytes) do |body|
           create_tempfile(path, body) if body
         end
       end
@@ -85,10 +84,9 @@ module Fastdfs
         group_bytes, path_bytes = group_path_bytes(path, group_name)
         meta_bytes = meta_to_bytes(options)
 
-        size_bytes = Utils.number_to_buffer(path_bytes.length) + Utils.number_to_buffer(meta_bytes.length)
-        size_bytes = (size_bytes).full_fill(0, 16)
-        total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
-        @proxy.dispose(CMD::SET_METADATA, total, (size_bytes + flag.bytes + group_bytes + path_bytes), meta_bytes.pack("C*"))
+        size_bytes = path_bytes.length.to_eight_buffer.concat(meta_bytes.length.to_eight_buffer).full_fill(0, 16)
+        # total = size_bytes.length + flag.length + group_bytes.length + path_bytes.length + meta_bytes.length
+        @proxy.dispose(CMD::SET_METADATA, (size_bytes + flag.bytes + group_bytes + path_bytes), meta_bytes.pack("C*"))
       end
 
       def convert_meta_flag(flag)
@@ -117,7 +115,19 @@ module Fastdfs
       end
 
       def extname_len; ProtoCommon::EXTNAME_LEN end;
-      def size_len; ProtoCommon::SIZE_LEN end;
+      def file_size_len; ProtoCommon::SIZE_LEN end;
+
+      def convert_file_info(file)
+        if file.class.name == "ActionDispatch::Http::UploadedFile"
+          return file.tempfile, convert_extname_bytes(file.original_filename)
+        else
+          return file, convert_extname_bytes(file.path)
+        end
+      end
+
+      def convert_extname_bytes(file_name)
+        File.extname(file_name)[1..extname_len].to_s.bytes.full_fill(0, extname_len)
+      end
     end
 
   end
