@@ -4,8 +4,9 @@ module Fastdfs
   module Client
 
     class Tracker
-
-      attr_accessor :socket, :cmd, :options, :socket
+      
+      attr_accessor :options
+      attr_reader :cmd, :socket
 
       def initialize(host, port, options = {})
         @options = options

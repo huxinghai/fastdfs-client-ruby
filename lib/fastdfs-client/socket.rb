@@ -7,7 +7,8 @@ module Fastdfs
   module Client
 
     class Socket
-      attr_accessor :header, :content, :header_len, :cmd, :socket, :host, :port
+      attr_accessor :socket, :host, :port
+      attr_reader :header, :content, :header_len, :cmd
 
       def initialize(host, port, options = {})
         @host, @port = host, port
@@ -19,7 +20,6 @@ module Fastdfs
       end
 
       def write(*args)
-        debugger if args[1] == 119
         @cmd = args.shift
         pkg = args.shift
 
@@ -60,9 +60,9 @@ module Fastdfs
       private
       def parseHeader
         err_msg = nil
-        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{@cmd}" unless @header.length == @header_len || err_msg
-        err_msg = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{@cmd}" unless @header[8] == CMD::RESP_CODE || err_msg
-        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{@cmd}" unless @header[9] == 0 || err_msg
+        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || err_msg
+        err_msg = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || err_msg
+        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || err_msg
         {status: err_msg.nil?, err_msg: err_msg}
       end
 

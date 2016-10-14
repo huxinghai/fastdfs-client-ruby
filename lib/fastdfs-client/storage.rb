@@ -4,7 +4,7 @@ module Fastdfs
   module Client
 
     class Storage
-      attr_accessor :group_name, :store_path, :proxy, :options, :socket
+      attr_accessor :proxy, :options, :socket
 
       def initialize(host, port, store_path = nil, options = {})
         @options = options || {}
@@ -12,15 +12,13 @@ module Fastdfs
 
         @proxy = ClientProxy.new(host, port, @options[:socket])
         @socket = @proxy.socket
-        @extname_len = ProtoCommon::EXTNAME_LEN
-        @size_len = ProtoCommon::SIZE_LEN        
         @store_path = store_path || 0
       end
 
       def upload(file, options = {})  
-        ext_name_bs = File.extname(file)[1..@extname_len].to_s.bytes.full_fill(0, @extname_len)
-        size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, @size_len)
-        content_len = (@size_len + @extname_len + file.size)
+        ext_name_bs = File.extname(file)[1..extname_len].to_s.bytes.full_fill(0, extname_len)
+        size_byte = ([@store_path] + Utils.number_to_buffer(file.size)).full_fill(0, size_len)
+        content_len = (size_len + extname_len + file.size)
 
         @proxy.dispose(CMD::UPLOAD_FILE, content_len, size_byte + ext_name_bs, IO.read(file)) do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
@@ -117,7 +115,9 @@ module Fastdfs
         tmp.close
         tmp
       end
-      
+
+      def extname_len; ProtoCommon::EXTNAME_LEN end;
+      def size_len; ProtoCommon::SIZE_LEN end;
     end
 
   end
