@@ -10,17 +10,28 @@ class MockTCPSocket
     @recv_offset = 0
     @connect_state = true
     @cmd = nil
+    @content = []
+    @header = []
+  end
+
+  def connection
+    @content = []
+    @header = []
   end
 
   def write(*args)
     pkg = args[0].unpack("C*")
-    @content = pkg
+    if @header.length <= 0
+      @header = pkg
+    else
+      @content.concat(pkg)  
+    end
     @cmd ||= pkg[8]
     sleep(rand(0..4))
   end
 
   def recv(len)
-    sleep(rand(0..3))
+    sleep(rand(0..2))
     data = case @cmd
     when 101
       gate_tracker(len)
@@ -65,8 +76,9 @@ class MockTCPSocket
   def upload_file(len)
     header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
     group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
-    file_name = TestConfig::FILE_NAME.bytes
-    res = (group_name + file_name)
+    path = path_replace_extname
+    file_path_bytes = path.bytes
+    res = (group_name + file_path_bytes)
     header[7] = (header + res).length
     res = (header + res)
     
@@ -95,5 +107,13 @@ class MockTCPSocket
     body = IO.read(TestConfig::FILE).bytes
     header[7] = body.length
     (header + body)[@recv_offset...@recv_offset+len].pack("C*")
+  end
+
+  private 
+  def path_replace_extname
+    path = TestConfig::FILE_PATH
+    extname = File.extname(path)
+    path.gsub!(extname, ".#{@header[19..-1].reject{|i| i.zero? }.pack('C*')}")
+    path
   end
 end

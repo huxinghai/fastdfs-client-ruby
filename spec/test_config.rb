@@ -3,7 +3,7 @@ module TestConfig
   STORAGE_PORT = "23000"
   STORE_PATH = 0
   GROUP_NAME = "group1"
-  FILE_NAME = "M00/04/47/wKgIF1cHcQyAeAF7AAACVHeY6n8267.png"
+  FILE_PATH = "M00/04/47/wKgIF1cHcQyAeAF7AAACVHeY6n8267.png"
 
   METADATA = {
     width: "800",

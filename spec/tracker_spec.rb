@@ -43,7 +43,7 @@ describe Fastdfs::Client::Tracker do
         res = storage.upload(File.open(File.expand_path("../page.png", __FILE__)))
         expect(res[:status]).to be_truthy
         results = res[:result]
-        results = storage.delete(results[:path], results[:group_name])
+        res = storage.delete(results[:path], results[:group_name])
         expect(res[:status]).to be_truthy
       end
     end
