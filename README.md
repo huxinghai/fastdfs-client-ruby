@@ -24,6 +24,7 @@ fastdfs client for ruby
   if @storage.is_a?(Fastdfs::Client::Storage)
 
     @storage.upload(@file)
+    # @file class includes [File, Tempfile, ActionDispatch::Http::UploadedFile]
     #result: {group_name: "group1", path: "m1/xfsd/fds.jpg"}
 
     @storage.delete(path, group_name)  
