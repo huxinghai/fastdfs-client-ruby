@@ -15,7 +15,6 @@ module Fastdfs
         @options = options || {}
         @connection_timeout = @options[:connection_timeout] || 3
         @recv_timeout = @options[:recv_timeout] || 20
-        connection
       end
 
       def write(*args)
