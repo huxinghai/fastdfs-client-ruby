@@ -11,9 +11,9 @@ FC = Fastdfs::Client
 
 RSpec.configure do |config|
   config.before(:each) do 
-    # TCPSocket.stub(:new) do |h, p|
-    #   MockTCPSocket.new(h, p)
-    # end
+    TCPSocket.stub(:new) do |h, p|
+      MockTCPSocket.new(h, p)
+    end
   end 
   config.mock_with :rspec do |c|
     c.syntax = [:should, :expect]
