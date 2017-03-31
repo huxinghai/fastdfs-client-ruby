@@ -11,11 +11,10 @@ module Fastdfs
         @options = options
         @proxy = ClientProxy.new(host, port, @options[:socket])
         @socket = @proxy.socket
-        @cmd = CMD::STORE_WITHOUT_GROUP_ONE
       end
 
       def get_storage
-        res = @proxy.dispose(@cmd) do |body|
+        res = @proxy.dispose(CMD::STORE_WITHOUT_GROUP_ONE) do |body|
           storage_ip = body[ProtoCommon::IPADDR].strip
           storage_port = body[ProtoCommon::PORT].unpack("C*").to_pack_long
           store_path = body[ProtoCommon::TRACKER_BODY_LEN-1].unpack("C*")[0]
