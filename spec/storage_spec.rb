@@ -8,7 +8,7 @@ describe Fastdfs::Client::Storage do
   let(:tracker){ FC::Tracker.new(host, port) }
   let(:storage){ tracker.get_storage }
   let(:tempfile) do 
-    file = Tempfile.new([nil, "1.txt"])
+    file = Tempfile.new(["/tmp", "1.txt"])
     file.write("testtest")
     file.close
     file
@@ -35,6 +35,13 @@ describe Fastdfs::Client::Storage do
     res = storage.upload(tempfile)
     expect(res[:status]).to be_truthy
     expect(File.extname(res[:result][:path])).to eq(".txt")
+  end
+
+  it "tempfile long upload " do 
+    res = storage.upload(tempfile, alive: true)
+    expect(res[:status]).to be_truthy
+    expect(File.extname(res[:result][:path])).to eq(".txt")
+    expect(storage.socket.socket.closed?).to be_truthy
   end
 
   it "ActionDispatch::Http::UploadedFile upload" do 
