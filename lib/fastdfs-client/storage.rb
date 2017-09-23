@@ -7,12 +7,17 @@ module Fastdfs
       attr_accessor :proxy, :options, :socket, :store_path
 
       def initialize(host, port, store_path = nil, options = {})
-        @options = options || {}
-        @options = store_path if store_path.is_a?(Hash)
 
-        @proxy = ClientProxy.new(host, port, @options[:socket])
+        @options = if store_path.is_a?(Hash)
+                    @store_path = 0
+                    store_path
+                  else
+                    @store_path = store_path
+                    options
+                  end
+                  
+        @proxy = ClientProxy.new(host, port, @options)
         @socket = @proxy.socket
-        @store_path = store_path || 0
       end
 
       def upload(_file, options = {})  
@@ -20,7 +25,7 @@ module Fastdfs
         size_byte = [@store_path].concat(file.size.to_eight_buffer).full_fill(0, file_size_len)
 
         byte = size_byte + ext_name_bytes
-        
+
         @proxy.dispose(CMD::UPLOAD_FILE, byte , IO.read(file)) do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
