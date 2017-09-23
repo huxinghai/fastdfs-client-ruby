@@ -20,18 +20,13 @@ module Fastdfs
         size_byte = [@store_path].concat(file.size.to_eight_buffer).full_fill(0, file_size_len)
 
         byte = size_byte + ext_name_bytes
-        method = keep_alive_upload? options
-        @proxy.public_send(method, CMD::UPLOAD_FILE, byte , IO.read(file)) do |body|
+        
+        @proxy.dispose(CMD::UPLOAD_FILE, byte , IO.read(file)) do |body|
           group_name_max_len = ProtoCommon::GROUP_NAME_MAX_LEN
           res = {group_name: body[0...group_name_max_len].strip, path: body[group_name_max_len..-1]}
           _set_metadata(res[:path], res[:group_name], options) unless options.blank?
           res
         end
-      end
-
-      def keep_alive_upload? options
-        alive = options.delete(:alive)
-        alive ? :keep_alive : :dispose
       end
 
       def delete(path, group_name = nil)
