@@ -1,4 +1,8 @@
-require 'debugger'
+if RUBY_VERSION.start_with?('2')
+  require 'byebug'
+else
+  require 'debugger'
+end
 require 'rspec'
 require 'rspec/core'
 require 'rspec/mocks'

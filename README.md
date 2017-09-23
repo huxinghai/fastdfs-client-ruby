@@ -23,7 +23,7 @@ fastdfs client for ruby
 
   if @storage.is_a?(Fastdfs::Client::Storage)
 
-    @storage.upload(@file)
+    @storage.upload(@file) #如果要使用长连接的话可以@strage.upload(@file, {alive: true})
     # @file class includes [File, Tempfile, ActionDispatch::Http::UploadedFile]
     #result: {group_name: "group1", path: "m1/xfsd/fds.jpg"}
 
