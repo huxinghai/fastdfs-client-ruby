@@ -1,5 +1,5 @@
 module TestConfig
-  STORAGE_IP = "192.168.8.23"
+  STORAGE_IP = "192.168.1.168"
   STORAGE_PORT = "23000"
   STORE_PATH = 0
   GROUP_NAME = "group1"

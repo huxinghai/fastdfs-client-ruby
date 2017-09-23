@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Fastdfs::Client::Storage do 
 
-  let(:host){ "192.168.9.16" }
+  let(:host){ "192.168.1.168" }
   let(:port){ "22122" }
 
   let(:tracker){ FC::Tracker.new(host, port) }
@@ -39,9 +39,10 @@ describe Fastdfs::Client::Storage do
 
   it "tempfile long upload " do 
     res = storage.upload(tempfile, alive: true)
+
     expect(res[:status]).to be_truthy
     expect(File.extname(res[:result][:path])).to eq(".txt")
-    expect(storage.socket.socket.closed?).to be_truthy
+    expect(storage.socket.socket.closed?).to be_falsey
   end
 
   it "ActionDispatch::Http::UploadedFile upload" do 
@@ -86,7 +87,7 @@ describe Fastdfs::Client::Storage do
       expect(storage.set_metadata(TestConfig::FILE_PATH, TestConfig::GROUP_NAME, TestConfig::METADATA)).to be_truthy
     end
 
-    it "download the file to the local" do 
+    it "download the file to the local" do
       res = storage.download(TestConfig::FILE_PATH, TestConfig::GROUP_NAME)
       expect(res[:status]).to be_truthy
       expect(res[:result]).to be_an_instance_of(Tempfile)

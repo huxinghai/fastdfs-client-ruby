@@ -39,7 +39,7 @@ module Fastdfs
       end
 
       def connected
-        !@socket.closed?
+        @socket.nil? ? false : !@socket.closed?
       end
 
       def receive(&block)

@@ -5,18 +5,13 @@ class MockTCPSocket
   attr_accessor :host, :port, :cmd, :recv_offset, :connect_state
 
   def initialize(host, port)
-    @host = host
-    @port = port
-    @recv_offset = 0
-    @connect_state = true
-    @cmd = nil
-    @content = []
-    @header = []
+    @host, @port = host, port
+    init_options
+    init_data
   end
 
   def connection
-    @content = []
-    @header = []
+    init_data
   end
 
   def write(*args)
@@ -51,9 +46,7 @@ class MockTCPSocket
   end
 
   def close
-    @recv_offset = 0
-    @connect_state = false
-    @cmd = nil
+    init_options
   end
 
   def closed?
@@ -109,7 +102,17 @@ class MockTCPSocket
     (header + body)[@recv_offset...@recv_offset+len].pack("C*")
   end
 
-  private 
+  def init_options
+    @recv_offset = 0
+    @connect_state = true
+    @cmd = nil
+  end
+
+  def init_data
+    @content = []
+    @header = []
+  end
+  
   def path_replace_extname
     path = TestConfig::FILE_PATH
     extname = File.extname(path)

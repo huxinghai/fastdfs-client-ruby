@@ -18,7 +18,7 @@ module Fastdfs
       def upload(_file, options = {})  
         file, ext_name_bytes = convert_file_info(_file)
         size_byte = [@store_path].concat(file.size.to_eight_buffer).full_fill(0, file_size_len)
-        # content_len = file_size_len + extname_len + file.size
+
         byte = size_byte + ext_name_bytes
         method = keep_alive_upload? options
         @proxy.public_send(method, CMD::UPLOAD_FILE, byte , IO.read(file)) do |body|
