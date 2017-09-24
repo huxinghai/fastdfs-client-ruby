@@ -5,7 +5,7 @@ module Fastdfs
 
     class Tracker
       
-      attr_accessor :options, :socket, :current_storage
+      attr_accessor :options, :socket
 
       def initialize(options = {})
         @options = default_options.merge(options)
@@ -18,16 +18,22 @@ module Fastdfs
 
       end
 
-      def get_storage
+      def get_storage(alive = false)
         res = proxy.dispose(CMD::STORE_WITHOUT_GROUP_ONE) do |body|
           storage_ip = body[ProtoCommon::IPADDR].strip
           storage_port = body[ProtoCommon::PORT].unpack("C*").to_pack_long
           store_path = body[ProtoCommon::TRACKER_BODY_LEN-1].unpack("C*")[0]
         
-          Storage.new(storage_ip, storage_port, store_path, extract_proxy_options)
+          Storage.new(storage_ip, storage_port, store_path, extract_proxy_options.merge(alive: alive))
         end
         raise res[:err_msg] unless res[:status]
-        @current_storage = res[:result]
+        res[:result]
+      end
+
+      def pipelined
+        storage = get_storage(true)
+        yield storage
+        storage.proxy.close
       end
 
       def proxy

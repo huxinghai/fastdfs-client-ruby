@@ -55,13 +55,18 @@ module Fastdfs
         res_header
       end
 
+      def response_obj
+        Hash[status: true, err_msg: nil, result: nil]
+      end
+
       private
       def parseHeader
-        err_msg = nil
-        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || err_msg
-        err_msg = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || err_msg
-        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || err_msg
-        {status: err_msg.nil?, err_msg: err_msg}
+        obj = response_obj
+        obj[:err_msg] = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || err_msg
+        obj[:err_msg] = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || err_msg
+        obj[:err_msg] = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || err_msg
+        obj[:status] = obj[:err_msg].nil?
+        obj
       end
 
       def timeout_recv

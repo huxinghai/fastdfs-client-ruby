@@ -4,19 +4,18 @@ module Fastdfs
   module Client
 
     class Storage
-      attr_accessor :proxy, :options, :socket, :store_path
+      attr_accessor :proxy, :socket, :store_path
 
       def initialize(host, port, store_path = nil, options = {})
-
-        @options = if store_path.is_a?(Hash)
-                    @store_path = 0
+        @store_path = 0
+        options = if store_path.is_a?(Hash)
                     store_path
                   else
                     @store_path = store_path
                     options
                   end
-                  
-        @proxy = ClientProxy.new(host, port, @options)
+
+        @proxy = ClientProxy.new(host, port, options)
         @socket = @proxy.socket
       end
 

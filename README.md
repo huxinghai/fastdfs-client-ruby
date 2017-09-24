@@ -21,6 +21,12 @@ fastdfs client for ruby
 
   @storage = tracker.get_storage
 
+  tracker.pipelined do |s|
+    s.upload
+    s.delete
+    s
+  end
+
   if @storage.is_a?(Fastdfs::Client::Storage)
 
     @storage.upload(@file) #如果要使用长连接的话可以@strage.upload(@file, {alive: true})
