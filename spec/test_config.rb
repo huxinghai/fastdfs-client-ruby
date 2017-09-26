@@ -4,6 +4,7 @@ module TestConfig
   STORE_PATH = 0
   GROUP_NAME = "group1"
   FILE_PATH = "M00/04/47/wKgIF1cHcQyAeAF7AAACVHeY6n8267.png"
+  SOCKET_DEFAULT_OPTION =  {connection_timeout: 3, recv_timeout: 20}
 
   METADATA = {
     width: "800",

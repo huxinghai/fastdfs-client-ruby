@@ -5,12 +5,10 @@ module Fastdfs
 
     class Tracker
       
-      attr_accessor :options, :socket
+      attr_accessor :options
 
       def initialize(options = {})
-        @options = default_options.merge(options)
-        @options[:trackers] = [@options[:trackers]] if @options[:trackers].is_a?(Hash)
-        
+        @options = default_options_merge(options)
         @proxies = @options[:trackers].map do |tracker| 
           opt = tracker.fs_symbolize_keys
           ClientProxy.new(opt[:host], opt[:port], extract_proxy_options.merge(alive: true)) 
@@ -44,9 +42,21 @@ module Fastdfs
       end
 
       private 
+      def default_options_merge(options = {})
+        opts = default_options.merge(options)
+        tracker = {host: opts.delete(:host), port: opts.delete(:port)}
+        if !tracker[:host].nil?
+          opts[:trackers] = [tracker]
+        elsif opts[:trackers].is_a?(Hash)
+          opts[:trackers] = [opts[:trackers]]
+        end
+        opts
+      end
 
       def default_options
         {
+          host: nil,
+          port: nil,
           trackers: [
             {host: "127.0.0.1", port: "22122"}
           ],

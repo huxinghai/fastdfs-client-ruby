@@ -1,20 +1,18 @@
 require 'spec_helper'
 
 describe Fastdfs::Client::Tracker do 
-
-  let(:host){ "192.168.1.168" }
-  let(:port){ "22122" }
-
-  let(:tracker){ FC::Tracker.new(host, port) }
+  let(:server){ {host: "192.168.1.168", port: "22122"} }
+  let(:tracker){ FC::Tracker.new(trackers: server) }
 
   it "initialize the server" do 
-    expect(FC::Socket).to receive(:new).with(host, port, nil) 
-    FC::Tracker.new(host, port) 
+    expect(FC::Socket).to receive(:new).with(server[:host], server[:port], TestConfig::SOCKET_DEFAULT_OPTION) 
+    FC::Tracker.new(trackers: server) 
   end
 
   it "should have access to the storage connection" do
-    expect(tracker.socket).to receive(:connection).and_return({})
-    expect(tracker.socket).to receive(:close)
+    socket = tracker.get_storage.socket
+    expect(socket).to receive(:connection).and_return(socket.response_obj.update({status: true}))
+    expect(socket).to receive(:close)
     tracker.get_storage
   end
 
@@ -23,14 +21,15 @@ describe Fastdfs::Client::Tracker do
   end
 
   it "verify the server address and port" do 
-    expect(tracker.get_storage.socket.host).to eq(TestConfig::STORAGE_IP)
+    storage = tracker.get_storage
+    expect(storage.proxy.host).to eq(TestConfig::STORAGE_IP)
 
-    expect(tracker.get_storage.socket.port.to_s).to eq(TestConfig::STORAGE_PORT)
-    expect(tracker.get_storage.store_path).to eq(TestConfig::STORE_PATH)
+    expect(storage.proxy.port.to_s).to eq(TestConfig::STORAGE_PORT)
+    expect(storage.store_path).to eq(TestConfig::STORE_PATH)
   end
 
   it "get to the server failed" do 
-    if tracker.socket.socket.is_a?(MockTCPSocket)
+    if tracker.get_storage.socket.is_a?(MockTCPSocket)
       result = FC::ProtoCommon.header_bytes(FC::CMD::RESP_CODE, 0, 22)
       MockTCPSocket.any_instance.stub("recv").and_return(result.pack("C*"))
       expect(tracker.get_storage).to be_a_kind_of(Hash)

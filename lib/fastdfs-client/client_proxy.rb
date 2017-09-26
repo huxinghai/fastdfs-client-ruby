@@ -32,13 +32,13 @@ module Fastdfs
             rescue Exception => e
               @socket.response_obj.update({status: false, err_msg: e.message})
             ensure
-              @socket.close           
+              close           
             end
             
           end            
         end
       ensure
-        @socket.close unless @alive   
+        close unless @alive   
       end
       
       def close
