@@ -2,10 +2,9 @@ require 'spec_helper'
 
 describe Fastdfs::Client::Storage do 
 
-  let(:host){ "192.168.1.168" }
-  let(:port){ "22122" }
+  let(:server){ {host: "192.168.1.168", port: "22122"} }
+  let(:tracker){ FC::Tracker.new(trackers: server) }
 
-  let(:tracker){ FC::Tracker.new(host, port) }
   let(:storage){ tracker.get_storage }
   let(:tempfile) do 
     file = Tempfile.new(["/tmp", "1.txt"])
@@ -15,8 +14,8 @@ describe Fastdfs::Client::Storage do
   end
 
   it "initialize the server" do 
-    expect(FC::Socket).to receive(:new).with(host, port, nil) 
-    FC::Storage.new(host, port) 
+    expect(FC::Socket).to receive(:new).with(server[:host], server[:port], nil) 
+    FC::Storage.new(server[:host], server[:port]) 
   end
 
   it "should have access to the storage connection" do
@@ -35,14 +34,6 @@ describe Fastdfs::Client::Storage do
     res = storage.upload(tempfile)
     expect(res[:status]).to be_truthy
     expect(File.extname(res[:result][:path])).to eq(".txt")
-  end
-
-  it "tempfile long upload " do 
-    res = storage.upload(tempfile, alive: true)
-
-    expect(res[:status]).to be_truthy
-    expect(File.extname(res[:result][:path])).to eq(".txt")
-    expect(storage.socket.socket.closed?).to be_falsey
   end
 
   it "ActionDispatch::Http::UploadedFile upload" do 

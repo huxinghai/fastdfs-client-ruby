@@ -30,7 +30,7 @@ module Fastdfs
               end
               @socket.receive &block  
             rescue Exception => e
-              @socket.response_obj.update({status: false, err_msg: e.message})
+              @socket.response_obj.update(status: false, err_msg: e.message)
             ensure
               close           
             end

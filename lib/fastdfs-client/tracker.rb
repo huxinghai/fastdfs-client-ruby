@@ -5,7 +5,11 @@ module Fastdfs
 
     class Tracker
       
+      include Delegation
+
       attr_accessor :options
+
+      delegate :upload, :delete, :get_metadata, :set_metadata, :download, to: :get_storage
 
       def initialize(options = {})
         @options = default_options_merge(options)
@@ -31,14 +35,8 @@ module Fastdfs
       def pipelined
         storage = get_storage(true)
         yield storage
+      ensure
         storage.proxy.close
-      end
-
-      def proxy
-        @proxy_index ||= -1
-        @proxy_index += 1
-        @proxy_index = 0 if @proxy_index >= @proxies.length
-        @proxies[@proxy_index]
       end
 
       private 
@@ -68,6 +66,13 @@ module Fastdfs
       def extract_proxy_options
         keys = [:connection_timeout, :recv_timeout]
         @options.select{|key| keys.include?(key) }
+      end
+
+      def proxy
+        @proxy_index ||= -1
+        @proxy_index += 1
+        @proxy_index = 0 if @proxy_index >= @proxies.length
+        @proxies[@proxy_index]
       end
     end
 

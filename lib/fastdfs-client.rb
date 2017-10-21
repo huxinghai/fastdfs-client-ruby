@@ -1,4 +1,5 @@
 require "fastdfs-client/extend_core"
+require 'fastdfs-client/delegation'
 require 'fastdfs-client/socket'
 require 'fastdfs-client/client_proxy'
 require 'fastdfs-client/cmd'
