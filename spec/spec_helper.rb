@@ -18,7 +18,7 @@ RSpec.configure do |config|
     TCPSocket.stub(:new) do |h, p|
       MockTCPSocket.new(h, p)
     end
-  end 
+  end
   config.mock_with :rspec do |c|
     c.syntax = [:should, :expect]
   end

@@ -9,13 +9,6 @@ describe Fastdfs::Client::Tracker do
     FC::Tracker.new(trackers: server) 
   end
 
-  it "should have access to the storage connection" do
-    socket = tracker.get_storage.socket
-    expect(socket).to receive(:connection).and_return(socket.response_obj.update({status: true}))
-    expect(socket).to receive(:close)
-    tracker.get_storage
-  end
-
   it "should have access to the storage class" do 
     expect(tracker.get_storage.class).to eq(FC::Storage)
   end
@@ -50,6 +43,14 @@ describe Fastdfs::Client::Tracker do
     end
 
     items.map(&:join)
+  end
+
+  it "should be storage methods" do 
+    expect(tracker.respond_to?(:upload)).to be_truthy
+    expect(tracker.respond_to?(:delete)).to be_truthy
+    expect(tracker.respond_to?(:get_metadata)).to be_truthy
+    expect(tracker.respond_to?(:set_metadata)).to be_truthy
+    expect(tracker.respond_to?(:download)).to be_truthy
   end
 
 end

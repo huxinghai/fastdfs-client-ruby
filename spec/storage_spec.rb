@@ -14,7 +14,7 @@ describe Fastdfs::Client::Storage do
   end
 
   it "initialize the server" do 
-    expect(FC::Socket).to receive(:new).with(server[:host], server[:port], nil) 
+    expect(FC::Socket).to receive(:new).with(server[:host], server[:port], {}) 
     FC::Storage.new(server[:host], server[:port]) 
   end
 
