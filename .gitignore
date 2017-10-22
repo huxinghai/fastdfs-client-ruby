@@ -1,3 +1,5 @@
 *.gem
 Gemfile.lock
 tmp
+.ruby-version
+.byebug_history
