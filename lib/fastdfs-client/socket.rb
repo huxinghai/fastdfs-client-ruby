@@ -9,12 +9,12 @@ module Fastdfs
     class Socket
       attr_accessor :socket, :host, :port
 
-      def initialize(host, port, options = {})
+      def initialize(host, port, options)
         @host, @port = host, port
         @header_len = ProtoCommon::HEAD_LEN
         @options = options || {}
-        @connection_timeout = @options[:connection_timeout] || 3
-        @recv_timeout = @options[:recv_timeout] || 20
+        @connection_timeout = @options[:connection_timeout]
+        @recv_timeout = @options[:recv_timeout]
       end
 
       def write(*args)
@@ -39,7 +39,7 @@ module Fastdfs
       end
 
       def connected
-        !@socket.closed?
+        @socket.nil? ? false : !@socket.closed?
       end
 
       def receive(&block)
@@ -55,13 +55,18 @@ module Fastdfs
         res_header
       end
 
+      def response_obj
+        Hash[status: true, err_msg: nil, result: nil]
+      end
+
       private
       def parseHeader
-        err_msg = nil
-        err_msg = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || err_msg
-        err_msg = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || err_msg
-        err_msg = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || err_msg
-        {status: err_msg.nil?, err_msg: err_msg}
+        obj = response_obj
+        obj[:err_msg] = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || obj[:err_msg]
+        obj[:err_msg] = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || obj[:err_msg]
+        obj[:err_msg] = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || obj[:err_msg]
+        obj[:status] = obj[:err_msg].nil?
+        obj
       end
 
       def timeout_recv

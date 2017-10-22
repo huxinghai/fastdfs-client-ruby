@@ -2,21 +2,20 @@ require 'spec_helper'
 
 describe Fastdfs::Client::Storage do 
 
-  let(:host){ "192.168.9.16" }
-  let(:port){ "22122" }
+  let(:server){ {host: "192.168.1.168", port: "22122"} }
+  let(:tracker){ FC::Tracker.new(trackers: server) }
 
-  let(:tracker){ FC::Tracker.new(host, port) }
   let(:storage){ tracker.get_storage }
   let(:tempfile) do 
-    file = Tempfile.new([nil, "1.txt"])
+    file = Tempfile.new(["/tmp", "1.txt"])
     file.write("testtest")
     file.close
     file
   end
 
   it "initialize the server" do 
-    expect(FC::Socket).to receive(:new).with(host, port, nil) 
-    FC::Storage.new(host, port) 
+    expect(FC::Socket).to receive(:new).with(server[:host], server[:port], {}) 
+    FC::Storage.new(server[:host], server[:port]) 
   end
 
   it "should have access to the storage connection" do
@@ -79,7 +78,7 @@ describe Fastdfs::Client::Storage do
       expect(storage.set_metadata(TestConfig::FILE_PATH, TestConfig::GROUP_NAME, TestConfig::METADATA)).to be_truthy
     end
 
-    it "download the file to the local" do 
+    it "download the file to the local" do
       res = storage.download(TestConfig::FILE_PATH, TestConfig::GROUP_NAME)
       expect(res[:status]).to be_truthy
       expect(res[:result]).to be_an_instance_of(Tempfile)

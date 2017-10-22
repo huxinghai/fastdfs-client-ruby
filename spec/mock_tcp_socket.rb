@@ -5,18 +5,17 @@ class MockTCPSocket
   attr_accessor :host, :port, :cmd, :recv_offset, :connect_state
 
   def initialize(host, port)
-    @host = host
-    @port = port
-    @recv_offset = 0
-    @connect_state = true
-    @cmd = nil
-    @content = []
-    @header = []
+    @host, @port = host, port
+    reload_data
   end
 
   def connection
-    @content = []
-    @header = []
+    reload_data
+  end
+
+  def reload_data
+    init_options
+    init_data
   end
 
   def write(*args)
@@ -51,69 +50,81 @@ class MockTCPSocket
   end
 
   def close
-    @recv_offset = 0
+    init_options
     @connect_state = false
-    @cmd = nil
   end
 
   def closed?
-    @connect_state
+    !@connect_state
   end
 
   private 
   def gate_tracker(len)
-    header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+    header = init_header_bytes
     header[7] = ProtoCommon::TRACKER_BODY_LEN
 
     group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
     ip = Utils.array_merge([].fill(0, 0...15), TestConfig::STORAGE_IP.bytes)
     port = TestConfig::STORAGE_PORT.to_i.to_eight_buffer
     store_path = Array(TestConfig::STORE_PATH)
-
     (header+group_name+ip+port+store_path)[@recv_offset...@recv_offset+len].pack("C*")
   end
 
   def upload_file(len)
-    header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+    header = init_header_bytes
     group_name = Utils.array_merge([].fill(0, 0...16), TestConfig::GROUP_NAME.bytes)
     path = path_replace_extname
     file_path_bytes = path.bytes
     res = (group_name + file_path_bytes)
     header[7] = (header + res).length
-    res = (header + res)
     
+    res = (header + res)
     res[@recv_offset...@recv_offset+len].pack("C*")
   end
 
   def delete_file(len)
-    header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+    header = init_header_bytes
     header.pack("C*")
   end
 
   def get_metadata(len)
-    header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+    header = init_header_bytes
     body = TestConfig::METADATA.map{|a| a.join(ProtoCommon::FILE_SEPERATOR)}.join(ProtoCommon::RECORD_SEPERATOR).bytes
     header[7] = body.length
     (header + body)[@recv_offset...@recv_offset+len].pack("C*")
   end
 
   def set_metadata(len)
-    header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+    header = init_header_bytes
     header.pack("C*")
   end
 
   def download_file(len)
-    header = ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
+    header = init_header_bytes
     body = IO.read(TestConfig::FILE).bytes
     header[7] = body.length
     (header + body)[@recv_offset...@recv_offset+len].pack("C*")
   end
 
-  private 
+  def init_options
+    @recv_offset = 0
+    @connect_state = true
+    @cmd = nil
+  end
+
+  def init_data
+    @content = []
+    @header = []
+  end
+  
   def path_replace_extname
     path = TestConfig::FILE_PATH
     extname = File.extname(path)
     path.gsub!(extname, ".#{@header[19..-1].reject{|i| i.zero? }.pack('C*')}")
     path
+  end
+
+  def init_header_bytes
+    ProtoCommon.header_bytes(CMD::RESP_CODE, 0)
   end
 end
