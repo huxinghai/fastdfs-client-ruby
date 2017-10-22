@@ -24,15 +24,15 @@ module Fastdfs
               contents = Array(content)
               body_len = contents.map{|c| c.bytes.size }.inject(header.length){|sum, x| sum + x }
               full_header = ProtoCommon.header_bytes(cmd, body_len).concat(header)
+              @socket.socket.reload_data if Fastdfs::Client.mock_test && @socket.socket.respond_to?(:reload_data)
               @socket.write(cmd, full_header)
               contents.each do |c|
                 @socket.write(cmd, c)
               end
               @socket.receive &block  
             rescue Exception => e
-              @socket.response_obj.update(status: false, err_msg: e.message)
-            ensure
-              close           
+              close
+              @socket.response_obj.update(status: false, err_msg: e.message)              
             end
             
           end            

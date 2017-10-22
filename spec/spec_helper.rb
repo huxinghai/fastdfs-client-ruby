@@ -11,6 +11,10 @@ require File.expand_path('../../lib/fastdfs-client', __FILE__)
 require File.expand_path('../test_config', __FILE__)
 require File.expand_path('../mock_tcp_socket', __FILE__)
 
+Fastdfs::Client.class_eval do 
+  def self.mock_test; true end
+end 
+
 FC = Fastdfs::Client
 
 RSpec.configure do |config|

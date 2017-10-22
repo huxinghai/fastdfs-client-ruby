@@ -32,9 +32,10 @@ module Fastdfs
         res[:result]
       end
 
-      def pipelined
+      def pipeline
         storage = get_storage(true)
         yield storage
+        storage
       ensure
         storage.proxy.close
       end

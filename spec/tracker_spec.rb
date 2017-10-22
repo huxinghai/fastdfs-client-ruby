@@ -53,4 +53,23 @@ describe Fastdfs::Client::Tracker do
     expect(tracker.respond_to?(:download)).to be_truthy
   end
 
+  it "storage socket keepalive request" do 
+    storage = tracker.pipeline do |storage|
+      res = storage.upload(File.open(File.expand_path("../page.png", __FILE__)))[:result]
+      expect(storage.socket.connected).to be_truthy
+
+      tmp = storage.set_metadata(res[:path], res[:group_name], TestConfig::METADATA)
+      expect(tmp[:status]).to be_truthy
+      expect(storage.socket.connected).to be_truthy
+
+      tmp = storage.get_metadata(res[:path], res[:group_name])
+      expect(tmp[:status]).to be_truthy
+      expect(storage.socket.connected).to be_truthy
+
+      tmp = storage.download(res[:path], res[:group_name])
+      expect(tmp[:status]).to be_truthy
+      expect(storage.socket.connected).to be_truthy
+    end
+    expect(storage.socket.connected).to be_falsey
+  end
 end

@@ -62,9 +62,9 @@ module Fastdfs
       private
       def parseHeader
         obj = response_obj
-        obj[:err_msg] = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || err_msg
-        obj[:err_msg] = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || err_msg
-        obj[:err_msg] = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || err_msg
+        obj[:err_msg] = "recv package size #{@header} is not equal #{@header_len}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header.length == @header_len || obj[:err_msg]
+        obj[:err_msg] = "recv cmd: #{@header[8]} is not correct, expect recv code: #{CMD::RESP_CODE}, cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[8] == CMD::RESP_CODE || obj[:err_msg]
+        obj[:err_msg] = "recv erron #{@header[9]}, 0 is correct cmd: #{CMD::MAPPING_NAME[@cmd]}" unless @header[9] == 0 || obj[:err_msg]
         obj[:status] = obj[:err_msg].nil?
         obj
       end
