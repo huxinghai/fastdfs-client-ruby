@@ -72,4 +72,18 @@ describe Fastdfs::Client::Tracker do
     end
     expect(storage.socket.connected).to be_falsey
   end
+
+  it "multiple trackers server proxy" do 
+    trackers = [server]
+    two_server = {host: "192.168.1.169", port: "22122"}
+    trackers << two_server
+    ts = FC::Tracker.new(trackers: trackers)
+
+    1.upto(6).each do |i|
+      proxy = ts.send(:proxy)
+      res = i % 2 == 0 ?  two_server : server
+      expect({host: proxy.host, port: proxy.port}).to eq(res)
+    end
+  
+  end
 end

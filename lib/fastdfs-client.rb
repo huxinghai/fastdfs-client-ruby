@@ -1,3 +1,4 @@
+require 'fastdfs-client/version'
 require "fastdfs-client/extend_core"
 require 'fastdfs-client/delegation'
 require 'fastdfs-client/socket'

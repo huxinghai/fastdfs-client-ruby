@@ -17,19 +17,26 @@ fastdfs client for ruby
   #
 
 
-  tracker = Fastdfs::Client::Tracker.new("192.168.1.1", "22122")
+  tracker = Fastdfs::Client::Tracker.new(trackers: {host: "192.168.1.1", port: "22122"})
+
+  # multiple trackers server
+  # trackers: [
+  #  {host: "192.168.1.1", port: "22122"},
+  #  {host: "192.168.1.2", port: "22122"}
+  # ]
 
   @storage = tracker.get_storage
 
-  tracker.pipelined do |s|
-    s.upload
-    s.delete
-    s
+  # socket connection KEEPALIVE
+  tracker.pipeline do |s| 
+    files.each do |file|
+      s.upload(s)
+    end
   end
 
   if @storage.is_a?(Fastdfs::Client::Storage)
 
-    @storage.upload(@file) #如果要使用长连接的话可以@strage.upload(@file, {alive: true})
+    @storage.upload(@file)
     # @file class includes [File, Tempfile, ActionDispatch::Http::UploadedFile]
     #result: {group_name: "group1", path: "m1/xfsd/fds.jpg"}
 
