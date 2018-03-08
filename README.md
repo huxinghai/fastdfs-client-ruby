@@ -61,6 +61,9 @@ fastdfs client for ruby
   @storage.download ...
 ```
 
+### Contributing
+Bug report or pull request are welcome.
+
 ### License
 
 [MIT License](https://opensource.org/licenses/MIT)
