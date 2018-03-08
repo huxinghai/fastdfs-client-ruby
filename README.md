@@ -46,10 +46,12 @@ fastdfs client for ruby
 
   @tracker.download(path, group_name) 
   #result: #<Tempfile:/var/folders/m7/bt2j0rk54x555t44dpn4b7bm0000gn/T/test.jpg20160416-43738-1560vq3>  
+```
 
 
-  # Make compatible 1.x version
-  
+### Make compatible 1.x version
+
+```RUBY
   @storage = tracker.get_storage
   
   @storage.upload ...
@@ -57,7 +59,6 @@ fastdfs client for ruby
   @storage.set_metadata ...
   @storage.get_metadata ...
   @storage.download ...
-
 ```
 
 ### License
